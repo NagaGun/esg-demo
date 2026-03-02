@@ -1,25 +1,38 @@
-import logo from './logo.svg';
-import './App.css';
+import ClientCard from './components/ClientCard'
+
+const clients = [
+  { id: 1, name: "Patagonia", status: "Submitted", submitted: true },
+  { id: 2, name: "Cruz Foam", status: "Incomplete", issue: "Missing February energy data — unit mismatch on Scope 1" },
+  { id: 3, name: "Bloom & Wild", status: "In Progress" },
+  { id: 4, name: "Allbirds", status: "Not Started" }
+]
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="min-h-screen bg-gray-50">
+      
+      <div className="max-w-4xl mx-auto px-6 py-10">
+        
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Client Dashboard</h1>
+          <p className="text-gray-500 mt-1">4 active clients · 1 requires attention</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          {clients.map(client => (
+            <ClientCard
+              key={client.id}
+              name={client.name}
+              status={client.status}
+              issue={client.issue}
+              submitted={client.submitted}
+            />
+          ))}
+        </div>
+
+      </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
