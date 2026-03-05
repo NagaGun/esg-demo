@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import validateWithAI from '../agents/validator'
+import { parsePDFWithAI } from '../agents/pdfParser'
 
 function IntakeForm({ onSubmitSuccess }) {
   const [formData, setFormData] = useState({
@@ -12,12 +14,30 @@ function IntakeForm({ onSubmitSuccess }) {
 
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const [validating, setValidating] = useState(false)
+  const [parsing, setParsing] = useState(false)
+  const [warnings, setWarnings] = useState([])
+
+  async function handleFileUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setParsing(true)
+    const text = await file.text()
+    const extracted = await parsePDFWithAI(text)
+    if (extracted && Object.keys(extracted).length > 0) {
+      setFormData(prev => ({ ...prev, ...extracted }))
+    }
+    setParsing(false)
+  }
 
   function handleChange(field, value) {
     setFormData(prev => ({ ...prev, [field]: value }))
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
-    }
+    setErrors(prev => {
+      const next = { ...prev }
+      if (next[field]) delete next[field]
+      if (next.ai) delete next.ai
+      return next
+    })
   }
 
   function validate() {
@@ -47,12 +67,26 @@ function IntakeForm({ onSubmitSuccess }) {
     return newErrors
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const newErrors = validate()
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return
+    }
+
+    setValidating(true)
+    setWarnings([])
+    const result = await validateWithAI(formData)
+    setValidating(false)
+
+    if (!result.isValid) {
+      setErrors({ ai: result.issues.join('. ') })
+      return
+    }
+
+    if (result.warnings?.length) {
+      setWarnings(result.warnings)
     }
 
     setSubmitted(true)
@@ -81,6 +115,25 @@ function IntakeForm({ onSubmitSuccess }) {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 space-y-6">
+
+          {/* File Upload */}
+          <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 text-center">
+            <p className="text-gray-600 text-sm mb-4">Upload a utility bill and AI will fill the form automatically</p>
+            <input
+              type="file"
+              id="bill-upload"
+              accept=".pdf,.txt"
+              onChange={handleFileUpload}
+              disabled={parsing}
+              className="hidden"
+            />
+            <label
+              htmlFor="bill-upload"
+              className={`inline-block cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors ${parsing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+            >
+              {parsing ? 'Reading bill with AI...' : 'Upload Utility Bill'}
+            </label>
+          </div>
 
           {/* Company Name */}
           <div>
@@ -185,15 +238,29 @@ function IntakeForm({ onSubmitSuccess }) {
               <p className="text-red-600 text-sm font-medium">
                 ⚠ {Object.keys(errors).length} issue{Object.keys(errors).length > 1 ? 's' : ''} found — please fix before submitting
               </p>
+              {errors.ai && <p className="text-red-600 text-sm mt-2">{errors.ai}</p>}
+            </div>
+          )}
+
+          {/* Warnings Banner */}
+          {warnings.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <p className="text-amber-800 text-sm font-medium mb-1">Warnings</p>
+              <ul className="text-amber-700 text-sm list-disc list-inside space-y-0.5">
+                {warnings.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
             </div>
           )}
 
           {/* Submit Button */}
           <button
             onClick={handleSubmit}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors text-sm"
+            disabled={validating}
+            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-70 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors text-sm"
           >
-            Submit Energy Data
+            {validating ? 'Validating with AI...' : 'Submit Energy Data'}
           </button>
 
         </div>

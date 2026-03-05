@@ -7,6 +7,11 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.13.6",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "groq-sdk": "^0.37.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.1",
@@ -14,6 +19,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "server": "node server.js",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
