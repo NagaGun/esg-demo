@@ -12,6 +12,7 @@ function IntakeForm({ onSubmitSuccess }) {
     usageAmount: ''
   })
 
+  const [entries, setEntries] = useState([])
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [validating, setValidating] = useState(false)
@@ -89,8 +90,22 @@ function IntakeForm({ onSubmitSuccess }) {
       setWarnings(result.warnings)
     }
 
+    const newEntries = [...entries, { ...formData }]
+    if (onSubmitSuccess) onSubmitSuccess(newEntries)
+    setEntries([])
+    setFormData({
+      companyName: "",
+      startDate: "",
+      endDate: "",
+      energyType: "",
+      unit: "",
+      usageAmount: "",
+    })
+    setErrors({})
+    setSubmitted(false)
+    setParsing(false)
+    setWarnings([])
     setSubmitted(true)
-    if (onSubmitSuccess) onSubmitSuccess()
   }
 
   if (submitted) {
