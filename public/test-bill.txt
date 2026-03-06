@@ -1,0 +1,27 @@
+PACIFIC GAS AND ELECTRIC COMPANY
+Commercial Account Statement
+
+Account Number: 4521-8876-0023
+Service Address: 123 Market Street, San Francisco, CA 94102
+Billing Period: January 1, 2024 to December 31, 2024
+
+ELECTRICITY CHARGES
+Total electricity consumed: 47,250 kWh
+Rate: Commercial General Service
+
+NATURAL GAS CHARGES  
+Total gas consumed: 1,840 therms
+Equivalent kWh: 53,912 kWh
+
+WATER USAGE
+Total water consumption: 485 cubic metres (m³)
+
+FLEET FUEL SUMMARY
+Total diesel consumed: 820 litres
+Total petrol consumed: 340 litres
+Combined fuel: 1,160 litres
+
+WASTE DISPOSAL
+Total waste collected: 8.4 tonnes
+Recycled waste: 3.2 tonnes
+Recycling rate: 38%

@@ -1,262 +1,343 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen bg-earthana-cream" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-      {/* SECTION 1 — Navigation */}
-      <nav className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="text-2xl">🌿</span>
-            <span className="text-xl font-playfair font-semibold text-earthana-forest">Earthana</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-[#1B1B1B] hover:text-earthana-forest transition">Features</a>
-            <a href="#how-it-works" className="text-[#1B1B1B] hover:text-earthana-forest transition">How It Works</a>
-            <a href="#pricing" className="text-[#1B1B1B] hover:text-earthana-forest transition">Pricing</a>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/consultant/login"
-              className="px-4 py-2 rounded-lg border-2 border-earthana-forest text-earthana-forest font-medium hover:bg-earthana-forest/5 transition"
-            >
-              Consultant Login
-            </Link>
-            <Link
-              to="/consultant/login"
-              className="px-4 py-2 rounded-lg bg-earthana-forest text-white font-medium hover:bg-[#245a42] transition"
-            >
-              Get Started
-            </Link>
-          </div>
+    <div className="min-h-screen bg-earthana-white flex flex-col font-sans">
+      {/* NAV BAR */}
+      <nav className="sticky top-0 z-50 bg-[var(--white)] shadow-sm px-6 py-4 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2">
+          <span className="text-2xl">🌿</span>
+          <span className="font-playfair text-xl font-bold text-[var(--forest)]">Earthana</span>
+        </Link>
+        <div className="hidden md:flex items-center gap-6">
+          <a href="#features" className="text-[var(--gray)] hover:text-[var(--forest)] transition font-medium">Features</a>
+          <a href="#pricing" className="text-[var(--gray)] hover:text-[var(--forest)] transition font-medium">Pricing</a>
+          <button
+            onClick={() => navigate('/consultant/login')}
+            className="border border-[var(--gray)] text-[var(--gray)] px-4 py-2 rounded-lg hover:border-[var(--forest)] hover:text-[var(--forest)] transition font-medium"
+          >
+            Consultant Login
+          </button>
+          <button
+            onClick={() => navigate('/client/login')}
+            className="border border-[var(--mint)] text-[var(--forest)] px-4 py-2 rounded-lg hover:bg-[var(--light-green)] transition font-medium"
+          >
+            Client Portal
+          </button>
+          <button
+            onClick={() => navigate('/consultant/login')}
+            className="bg-[var(--forest)] text-[var(--white)] px-4 py-2 rounded-lg hover:bg-green-800 transition font-medium"
+          >
+            Get Started Free
+          </button>
         </div>
       </nav>
 
-      {/* SECTION 2 — Hero */}
-      <section className="max-w-6xl mx-auto px-6 py-20 relative overflow-hidden">
-        <div className="absolute top-20 right-0 w-96 h-96 bg-earthana-mint/20 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-20 right-1/3 w-64 h-64 bg-earthana-mint/15 rounded-full blur-2xl -z-10" />
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h1 className="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold text-[#1B1B1B] leading-tight mb-6">
-              ESG Reporting,
-              <br />
-              <span className="text-earthana-forest">Finally Simplified.</span>
+      {/* HERO SECTION */}
+      <section className="bg-[var(--cream)] py-20 px-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <span className="inline-block bg-[var(--light-green)] text-[var(--forest)] px-3 py-1 rounded-full text-sm font-semibold tracking-wide">
+              ESG Data Collection Platform
+            </span>
+            <h1 className="font-playfair text-5xl md:text-[56px] leading-tight text-[var(--dark)] font-bold">
+              ESG Reporting,<br />Finally Simplified.
             </h1>
-            <p className="text-lg text-[#1B1B1B]/80 mb-8 max-w-lg">
-              Earthana helps ESG consultants collect clean, validated client data — without the email chaos. Save 25% of your project time starting today.
+            <p className="text-[18px] text-[var(--gray)] max-w-lg leading-relaxed">
+              Stop chasing clients for bad data over email.
+              Earthana gives ESG consultants a smarter way
+              to collect, validate, and manage client
+              sustainability data — all in one place.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Link
-                to="/consultant/login"
-                className="px-6 py-3 rounded-lg bg-earthana-forest text-white font-medium hover:bg-[#245a42] transition shadow-lg"
+            <div className="flex flex-wrap gap-4 pt-2">
+              <button
+                onClick={() => navigate('/consultant/login')}
+                className="bg-[var(--forest)] text-[var(--white)] px-6 py-3 rounded-lg hover:bg-green-800 transition font-medium text-lg shadow-sm"
               >
                 Start Free Trial
-              </Link>
-              <a href="#how-it-works" className="px-6 py-3 text-earthana-forest font-medium hover:underline flex items-center gap-2">
-                See How It Works
-                <span>→</span>
-              </a>
+              </button>
+              <button
+                onClick={() => navigate('/sme')}
+                className="border-2 border-[var(--forest)] text-[var(--forest)] bg-white px-6 py-3 rounded-lg hover:bg-[var(--light-green)] transition font-bold text-lg shadow-sm"
+              >
+                I'm a Small Business →
+              </button>
+              <button className="border border-[var(--gray)] text-[var(--gray)] px-6 py-3 rounded-lg hover:bg-gray-50 transition font-medium text-lg">
+                Watch Demo
+              </button>
             </div>
+            <p className="text-sm text-[var(--gray)] font-medium">
+              ✓ Free to start &nbsp;&nbsp;✓ No credit card &nbsp;&nbsp;✓ Setup in 5 mins
+            </p>
           </div>
+
           <div className="relative">
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100" style={{ boxShadow: '0 25px 50px -12px rgba(45, 106, 79, 0.15)' }}>
-              <div className="text-earthana-forest font-playfair font-semibold mb-4">Client Dashboard</div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
-                  <span className="font-medium text-[#1B1B1B]">Patagonia</span>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Submitted</span>
+            <div className="bg-[var(--white)] rounded-xl shadow-xl p-6 border border-gray-100 relative z-10 w-full max-w-md mx-auto">
+              <h3 className="font-playfair font-bold text-xl text-[var(--dark)] mb-4 border-b pb-4">Client Dashboard</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition border border-gray-50">
+                  <span className="font-medium text-[var(--dark)]">Patagonia</span>
+                  <span className="bg-[var(--light-green)] text-[var(--forest)] px-2 py-1 rounded text-xs font-semibold">Submitted</span>
                 </div>
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
-                  <span className="font-medium text-[#1B1B1B]">Cruz Foam</span>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Incomplete</span>
+                <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition border border-gray-50">
+                  <span className="font-medium text-[var(--dark)]">Cruz Foam</span>
+                  <span className="bg-[var(--light-red)] text-[var(--red)] px-2 py-1 rounded text-xs font-semibold">Incomplete</span>
                 </div>
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
-                  <span className="font-medium text-[#1B1B1B]">Bloom & Wild</span>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">In Progress</span>
+                <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition border border-gray-50">
+                  <span className="font-medium text-[var(--dark)]">Allbirds</span>
+                  <span className="bg-[#FFF8E6] text-[#B7791F] px-2 py-1 rounded text-xs font-semibold">In Progress</span>
                 </div>
               </div>
+            </div>
+            <div className="absolute top-10 -right-4 w-full h-full bg-[var(--sand)] opacity-20 rounded-xl blur-lg z-0"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* PROBLEM SECTION */}
+      <section className="bg-[var(--white)] py-20 px-6">
+        <div className="max-w-6xl mx-auto text-center space-y-12">
+          <h2 className="font-playfair text-4xl font-bold text-[var(--dark)]">Sound Familiar?</h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-[var(--light-red)] p-8 rounded-xl text-left">
+              <div className="text-4xl mb-4">📧</div>
+              <h3 className="font-bold text-xl text-[var(--dark)] mb-3">Endless Email Chains</h3>
+              <p className="text-[var(--gray)]">
+                5-10 emails per client just to collect basic utility data.
+              </p>
+            </div>
+            <div className="bg-[var(--light-red)] p-8 rounded-xl text-left">
+              <div className="text-4xl mb-4">📊</div>
+              <h3 className="font-bold text-xl text-[var(--dark)] mb-3">Wrong Formats Every Time</h3>
+              <p className="text-[var(--gray)]">
+                PDFs instead of spreadsheets. kWh instead of MWh. Incomplete date ranges.
+              </p>
+            </div>
+            <div className="bg-[var(--light-red)] p-8 rounded-xl text-left">
+              <div className="text-4xl mb-4">⏱</div>
+              <h3 className="font-bold text-xl text-[var(--dark)] mb-3">20-30% of Time Wasted</h3>
+              <p className="text-[var(--gray)]">
+                Nearly a third of billable hours spent on admin instead of analysis.
+              </p>
+            </div>
+          </div>
+
+          <div className="py-8">
+            <span className="inline-block bg-[var(--dark)] text-[var(--white)] px-6 py-2 rounded-full font-medium shadow-md">
+              Earthana solves this →
+            </span>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-[var(--light-green)] p-8 rounded-xl text-left shadow-sm">
+              <div className="text-2xl mb-4 bg-white w-10 h-10 flex items-center justify-center rounded-full shadow-sm text-[var(--forest)]">✓</div>
+              <h3 className="font-bold text-xl text-[var(--forest)] mb-3">Guided Client Portal</h3>
+              <p className="text-[var(--dark)] opacity-80">
+                Clients submit through a smart form. Wrong formats become impossible.
+              </p>
+            </div>
+            <div className="bg-[var(--light-green)] p-8 rounded-xl text-left shadow-sm">
+              <div className="text-2xl mb-4 bg-white w-10 h-10 flex items-center justify-center rounded-full shadow-sm text-[var(--forest)]">✓</div>
+              <h3 className="font-bold text-xl text-[var(--forest)] mb-3">AI Catches Errors First</h3>
+              <p className="text-[var(--dark)] opacity-80">
+                Every submission is validated by AI before the consultant sees it.
+              </p>
+            </div>
+            <div className="bg-[var(--light-green)] p-8 rounded-xl text-left shadow-sm">
+              <div className="text-2xl mb-4 bg-white w-10 h-10 flex items-center justify-center rounded-full shadow-sm text-[var(--forest)]">✓</div>
+              <h3 className="font-bold text-xl text-[var(--forest)] mb-3">One Dashboard, All Clients</h3>
+              <p className="text-[var(--dark)] opacity-80">
+                See every client status in real time. Your inbox stays empty.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 3 — Problem & Solution */}
-      <section id="how-it-works" className="bg-white py-20">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="font-playfair text-3xl font-bold text-[#1B1B1B] text-center mb-12">The Problem With ESG Data Today</h2>
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <div className="p-6 rounded-2xl bg-[#FFF0F0] border border-red-100">
-              <span className="text-3xl mb-3 block">📧</span>
-              <h3 className="font-semibold text-[#1B1B1B] mb-2">Endless Email Chains</h3>
-              <p className="text-[#1B1B1B]/80 text-sm">5-10 emails per client per data category just to collect basic utility information.</p>
-            </div>
-            <div className="p-6 rounded-2xl bg-[#FFF0F0] border border-red-100">
-              <span className="text-3xl mb-3 block">📊</span>
-              <h3 className="font-semibold text-[#1B1B1B] mb-2">Wrong Formats, Wrong Units</h3>
-              <p className="text-[#1B1B1B]/80 text-sm">Clients submit PDFs instead of spreadsheets, kWh instead of MWh, incomplete date ranges.</p>
-            </div>
-            <div className="p-6 rounded-2xl bg-[#FFF0F0] border border-red-100">
-              <span className="text-3xl mb-3 block">⏱</span>
-              <h3 className="font-semibold text-[#1B1B1B] mb-2">20-30% of Project Time Wasted</h3>
-              <p className="text-[#1B1B1B]/80 text-sm">Consultants spend nearly a third of billable hours on admin instead of analysis.</p>
-            </div>
+      {/* FEATURES SECTION */}
+      <section id="features" className="bg-[var(--cream)] py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="font-playfair text-4xl font-bold text-[var(--dark)]">Everything Your Practice Needs</h2>
           </div>
-          <div className="flex justify-center mb-8">
-            <span className="text-earthana-forest text-2xl">↓</span>
-          </div>
-          <h2 className="font-playfair text-2xl font-bold text-earthana-forest text-center mb-12">Here&apos;s how Earthana fixes this</h2>
+
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl bg-[#F0FFF4] border border-green-100">
-              <span className="text-3xl mb-3 block">✅</span>
-              <h3 className="font-semibold text-[#1B1B1B] mb-2">Smart Data Collection</h3>
-              <p className="text-[#1B1B1B]/80 text-sm">Clients submit through a guided portal. Wrong formats become impossible.</p>
+            <div className="bg-[var(--white)] p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="text-3xl mb-4">🏗</div>
+              <h3 className="font-bold text-[var(--dark)] mb-2 text-lg">Multi-Client Dashboard</h3>
+              <p className="text-[var(--gray)]">One workspace for all your clients.</p>
             </div>
-            <div className="p-6 rounded-2xl bg-[#F0FFF4] border border-green-100">
-              <span className="text-3xl mb-3 block">✅</span>
-              <h3 className="font-semibold text-[#1B1B1B] mb-2">AI Validation at Submission</h3>
-              <p className="text-[#1B1B1B]/80 text-sm">Our AI catches errors before the consultant ever sees the data.</p>
+            <div className="bg-[var(--white)] p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="text-3xl mb-4">🤖</div>
+              <h3 className="font-bold text-[var(--dark)] mb-2 text-lg">AI Document Parser</h3>
+              <p className="text-[var(--gray)]">Upload a bill — AI fills the form.</p>
             </div>
-            <div className="p-6 rounded-2xl bg-[#F0FFF4] border border-green-100">
-              <span className="text-3xl mb-3 block">✅</span>
-              <h3 className="font-semibold text-[#1B1B1B] mb-2">Real-Time Dashboard</h3>
-              <p className="text-[#1B1B1B]/80 text-sm">See every client&apos;s submission status in one place. No inbox required.</p>
+            <div className="bg-[var(--white)] p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="text-3xl mb-4">✉️</div>
+              <h3 className="font-bold text-[var(--dark)] mb-2 text-lg">Client Invite Portal</h3>
+              <p className="text-[var(--gray)]">Unique link per client. They submit, you review.</p>
+            </div>
+            <div className="bg-[var(--white)] p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="text-3xl mb-4">🔍</div>
+              <h3 className="font-bold text-[var(--dark)] mb-2 text-lg">Smart Validation</h3>
+              <p className="text-[var(--gray)]">Unit mismatches and missing data caught automatically.</p>
+            </div>
+            <div className="bg-[var(--white)] p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="text-3xl mb-4">💬</div>
+              <h3 className="font-bold text-[var(--dark)] mb-2 text-lg">Scope Classifier</h3>
+              <p className="text-[var(--gray)]">Built-in AI answers Scope 1/2/3 questions.</p>
+            </div>
+            <div className="bg-[var(--white)] p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="text-3xl mb-4">📬</div>
+              <h3 className="font-bold text-[var(--dark)] mb-2 text-lg">Approval Flow</h3>
+              <p className="text-[var(--gray)]">AI drafts follow-ups. You approve.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 4 — Features */}
-      <section id="features" className="py-20 bg-earthana-cream">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="font-playfair text-3xl font-bold text-[#1B1B1B] text-center mb-12">Everything Your Practice Needs</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { icon: '🏗', title: 'Multi-Client Dashboard', desc: "Manage every client's data collection from one unified workspace." },
-              { icon: '🤖', title: 'AI Document Parser', desc: 'Upload a utility bill — AI extracts the data and fills the form automatically.' },
-              { icon: '✉️', title: 'Client Invite Portal', desc: 'Generate a unique link for each client. They submit, you review.' },
-              { icon: '🔍', title: 'Smart Validation', desc: 'Automated checks catch unit mismatches, missing months, and zero values instantly.' },
-              { icon: '💬', title: 'Scope Classifier', desc: "Not sure if it's Scope 1, 2, or 3? Ask the AI assistant built into every portal." },
-              { icon: '📬', title: 'Consultant Approval Flow', desc: 'AI drafts follow-up messages. You approve with one click.' },
-            ].map((f) => (
-              <div key={f.title} className="p-6 bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition">
-                <span className="text-2xl mb-3 block text-earthana-forest">{f.icon}</span>
-                <h3 className="font-semibold text-[#1B1B1B] mb-2">{f.title}</h3>
-                <p className="text-[#1B1B1B]/80 text-sm">{f.desc}</p>
-              </div>
-            ))}
+      {/* TESTIMONIALS */}
+      <section className="bg-[var(--white)] py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-playfair text-4xl font-bold text-center text-[var(--dark)] mb-16">Trusted By ESG Professionals</h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-[var(--cream)] p-8 rounded-xl">
+              <div className="text-[var(--sand)] text-xl mb-4">⭐⭐⭐⭐⭐</div>
+              <p className="text-[var(--dark)] italic mb-6">
+                "Earthana cut our data collection time in half. We onboarded 3 new clients last month that we wouldn't have had capacity for before."
+              </p>
+              <div className="font-bold text-[var(--forest)]">— Sarah M., ESG Consultant</div>
+            </div>
+            <div className="bg-[var(--cream)] p-8 rounded-xl">
+              <div className="text-[var(--sand)] text-xl mb-4">⭐⭐⭐⭐⭐</div>
+              <p className="text-[var(--dark)] italic mb-6">
+                "The AI validation alone is worth it. Clients submit clean data on the first try now."
+              </p>
+              <div className="font-bold text-[var(--forest)]">— James T., Sustainability Advisor</div>
+            </div>
+            <div className="bg-[var(--cream)] p-8 rounded-xl">
+              <div className="text-[var(--sand)] text-xl mb-4">⭐⭐⭐⭐⭐</div>
+              <p className="text-[var(--dark)] italic mb-6">
+                "This is exactly what our practice was missing. Setup took less than a day."
+              </p>
+              <div className="font-bold text-[var(--forest)]">— Priya K., ESG Practice Lead</div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 5 — Testimonials */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="font-playfair text-3xl font-bold text-[#1B1B1B] text-center mb-12">Trusted By ESG Professionals</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { quote: "Earthana cut our data collection time in half. We onboarded 3 new clients last month that we wouldn't have had capacity for before.", author: 'Sarah M., ESG Consultant, Boutique Firm' },
-              { quote: "The AI validation alone is worth it. Clients submit clean data on the first try now. The back-and-forth emails are basically gone.", author: 'James T., Sustainability Advisor' },
-              { quote: "Our team was skeptical about another software tool. Within a week everyone agreed — this is exactly what we were missing.", author: 'Priya K., ESG Practice Lead' },
-            ].map((t) => (
-              <div key={t.author} className="p-6 bg-earthana-cream rounded-2xl border-l-4 border-earthana-sand">
-                <div className="flex gap-1 mb-4 text-earthana-sand">★★★★★</div>
-                <p className="text-[#1B1B1B] mb-4">&ldquo;{t.quote}&rdquo;</p>
-                <p className="text-sm text-[#1B1B1B]/70">— {t.author}</p>
-              </div>
-            ))}
+      {/* PRICING SECTION */}
+      <section id="pricing" className="bg-[var(--cream)] py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="font-playfair text-4xl font-bold text-[var(--dark)] mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-xl text-[var(--gray)]">Start free. Scale as you grow.</p>
           </div>
-        </div>
-      </section>
 
-      {/* SECTION 6 — Pricing */}
-      <section id="pricing" className="py-20 bg-earthana-cream">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="font-playfair text-3xl font-bold text-[#1B1B1B] text-center mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-center text-[#1B1B1B]/80 mb-12">Start free. Scale as you grow.</p>
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm">
-              <h3 className="font-playfair text-xl font-semibold text-[#1B1B1B] mb-2">Starter</h3>
-              <div className="text-3xl font-bold text-[#1B1B1B] mb-6">$0<span className="text-base font-normal text-[#1B1B1B]/70">/month</span></div>
-              <ul className="space-y-3 mb-6 text-sm text-[#1B1B1B]/80">
-                <li>✓ Up to 3 active clients</li>
-                <li>✓ AI validation included</li>
-                <li>✓ Client portal links</li>
-                <li>✓ Email support</li>
+          <div className="grid md:grid-cols-3 gap-8 items-center max-w-5xl mx-auto">
+            {/* Starter */}
+            <div className="bg-[var(--white)] p-8 rounded-2xl border border-[var(--gray)] border-opacity-20 shadow-sm flex flex-col h-full">
+              <h3 className="text-xl font-bold text-[var(--gray)] mb-2 uppercase tracking-wide">Starter</h3>
+              <div className="text-4xl font-bold text-[var(--dark)] mb-6">$0<span className="text-lg font-normal text-[var(--gray)]">/month</span></div>
+              <ul className="space-y-4 mb-8 flex-1">
+                <li className="flex items-center gap-3"><span className="text-[var(--forest)]">✓</span> Up to 3 active clients</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--forest)]">✓</span> AI validation included</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--forest)]">✓</span> Client portal links</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--forest)]">✓</span> Email support</li>
               </ul>
-              <Link to="/consultant/login" className="block w-full py-3 text-center rounded-lg border-2 border-gray-300 text-[#1B1B1B] font-medium hover:border-earthana-forest hover:text-earthana-forest transition">Start Free</Link>
+              <button
+                onClick={() => navigate('/consultant/login')}
+                className="w-full py-3 rounded-lg border-2 border-[var(--dark)] text-[var(--dark)] font-bold hover:bg-[var(--dark)] hover:text-[var(--white)] transition"
+              >
+                Start Free
+              </button>
             </div>
-            <div className="p-6 bg-earthana-forest rounded-2xl shadow-xl relative">
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-earthana-sand text-[#1B1B1B] text-xs font-semibold rounded-full">Most Popular</span>
-              <h3 className="font-playfair text-xl font-semibold text-white mb-2">Professional</h3>
-              <div className="text-3xl font-bold text-white mb-6">$79<span className="text-base font-normal text-white/80">/month</span></div>
-              <ul className="space-y-3 mb-6 text-sm text-white/90">
-                <li>✓ Unlimited clients</li>
-                <li>✓ AI document parsing</li>
-                <li>✓ Consultant approval flow</li>
-                <li>✓ Priority support</li>
-                <li>✓ Custom branding on client portals</li>
+
+            {/* Professional */}
+            <div className="bg-[var(--forest)] p-8 rounded-2xl shadow-xl flex flex-col h-[105%] relative">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--sand)] text-[var(--dark)] font-bold px-4 py-1 rounded-full text-sm">
+                MOST POPULAR
+              </div>
+              <h3 className="text-xl font-bold text-[var(--mint)] mb-2 uppercase tracking-wide mt-2">Professional</h3>
+              <div className="text-4xl font-bold text-[var(--white)] mb-6">$79<span className="text-lg font-normal text-[var(--mint)]">/month</span></div>
+              <ul className="space-y-4 mb-8 flex-1 text-white opacity-90">
+                <li className="flex items-center gap-3"><span className="text-[var(--mint)]">✓</span> Unlimited clients</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--mint)]">✓</span> AI document parsing</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--mint)]">✓</span> Consultant approval flow</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--mint)]">✓</span> Custom branding</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--mint)]">✓</span> Priority support</li>
               </ul>
-              <Link to="/consultant/login" className="block w-full py-3 text-center rounded-lg bg-white text-earthana-forest font-medium hover:bg-earthana-cream transition">Start Free Trial</Link>
+              <button
+                onClick={() => navigate('/consultant/login')}
+                className="w-full py-3 rounded-lg bg-[var(--white)] text-[var(--forest)] font-bold hover:bg-[var(--cream)] transition"
+              >
+                Start Free Trial
+              </button>
             </div>
-            <div className="p-6 bg-white rounded-2xl border border-earthana-sand/50 shadow-sm">
-              <h3 className="font-playfair text-xl font-semibold text-[#1B1B1B] mb-2">Enterprise</h3>
-              <div className="text-3xl font-bold text-[#1B1B1B] mb-6">Custom</div>
-              <ul className="space-y-3 mb-6 text-sm text-[#1B1B1B]/80">
-                <li>✓ Everything in Professional</li>
-                <li>✓ Dedicated onboarding</li>
-                <li>✓ API access</li>
-                <li>✓ SLA guarantee</li>
-                <li>✓ Team seats</li>
+
+            {/* Enterprise */}
+            <div className="bg-[var(--white)] p-8 rounded-2xl border-2 border-[var(--sand)] shadow-sm flex flex-col h-full">
+              <h3 className="text-xl font-bold text-[var(--sand)] mb-2 uppercase tracking-wide">Enterprise</h3>
+              <div className="text-4xl font-bold text-[var(--dark)] mb-6">Custom</div>
+              <ul className="space-y-4 mb-8 flex-1">
+                <li className="flex items-center gap-3"><span className="text-[var(--forest)]">✓</span> Everything in Professional</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--forest)]">✓</span> Dedicated onboarding</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--forest)]">✓</span> API access</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--forest)]">✓</span> SLA guarantee</li>
+                <li className="flex items-center gap-3"><span className="text-[var(--forest)]">✓</span> Team seats</li>
               </ul>
-              <a href="mailto:contact@earthana.com" className="block w-full py-3 text-center rounded-lg border-2 border-earthana-sand text-[#1B1B1B] font-medium hover:bg-earthana-sand/20 transition">Contact Us</a>
+              <button
+                className="w-full py-3 rounded-lg border-2 border-[var(--sand)] text-[var(--dark)] font-bold hover:bg-[var(--sand)] hover:text-[var(--white)] transition"
+              >
+                Contact Us
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 7 — Footer */}
-      <footer className="bg-earthana-forest text-white py-16">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between gap-12 mb-12">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">🌿</span>
-                <span className="font-playfair text-xl font-semibold">Earthana</span>
-              </div>
-              <p className="text-white/80 text-sm">ESG data collection, simplified.</p>
-            </div>
-            <div className="grid grid-cols-3 gap-12">
-              <div>
-                <h4 className="font-semibold mb-3">Product</h4>
-                <ul className="space-y-2 text-sm text-white/80">
-                  <li><a href="#features" className="hover:text-white">Features</a></li>
-                  <li><a href="#pricing" className="hover:text-white">Pricing</a></li>
-                  <li><a href="#" className="hover:text-white">Roadmap</a></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-3">Company</h4>
-                <ul className="space-y-2 text-sm text-white/80">
-                  <li><a href="#" className="hover:text-white">About</a></li>
-                  <li><a href="#" className="hover:text-white">Blog</a></li>
-                  <li><a href="#" className="hover:text-white">Contact</a></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-3">Legal</h4>
-                <ul className="space-y-2 text-sm text-white/80">
-                  <li><a href="#" className="hover:text-white">Privacy</a></li>
-                  <li><a href="#" className="hover:text-white">Terms</a></li>
-                </ul>
-              </div>
-            </div>
+      {/* FOOTER */}
+      <footer className="bg-[var(--forest)] text-[var(--white)] py-12 px-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-8 mb-8">
+          <div className="col-span-1">
+            <Link to="/" className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">🌿</span>
+              <span className="font-playfair text-2xl font-bold">Earthana</span>
+            </Link>
+            <p className="text-[var(--mint)]">ESG data collection, simplified.</p>
           </div>
-          <div className="pt-8 border-t border-white/20 text-center text-sm text-white/70">
-            © 2025 Earthana. All rights reserved.
+          <div>
+            <h4 className="font-bold mb-4">Product</h4>
+            <ul className="space-y-2 text-[var(--mint)]">
+              <li><a href="#features" className="hover:text-[var(--white)] transition">Features</a></li>
+              <li><a href="#pricing" className="hover:text-[var(--white)] transition">Pricing</a></li>
+              <li><Link to="/" className="hover:text-[var(--white)] transition">Roadmap</Link></li>
+            </ul>
           </div>
+          <div>
+            <h4 className="font-bold mb-4">Company</h4>
+            <ul className="space-y-2 text-[var(--mint)]">
+              <li><Link to="/" className="hover:text-[var(--white)] transition">About</Link></li>
+              <li><Link to="/" className="hover:text-[var(--white)] transition">Blog</Link></li>
+              <li><Link to="/" className="hover:text-[var(--white)] transition">Contact</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold mb-4">Legal</h4>
+            <ul className="space-y-2 text-[var(--mint)]">
+              <li><Link to="/" className="hover:text-[var(--white)] transition">Privacy</Link></li>
+              <li><Link to="/" className="hover:text-[var(--white)] transition">Terms</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto pt-8 border-t border-[var(--mint)] border-opacity-20 text-[var(--mint)] text-sm">
+          © 2025 Earthana. All rights reserved.
         </div>
       </footer>
     </div>
-  )
+  );
 }

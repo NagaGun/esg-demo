@@ -5,6 +5,9 @@ import ConsultantLogin from './pages/ConsultantLogin'
 import ClientLogin from './pages/ClientLogin'
 import ConsultantDashboard from './pages/ConsultantDashboard'
 import ClientPortal from './pages/ClientPortal'
+import SMEOnboarding from './pages/SMEOnboarding'
+import SMECollect from './pages/SMECollect'
+import SMEReport from './pages/SMEReport'
 
 const initialClients = [
   { id: 1, name: 'Patagonia', status: 'Submitted', submitted: true, accessCode: 'demo1', reportingYear: '2024' },
@@ -21,6 +24,9 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/consultant/login" element={<ConsultantLogin />} />
       <Route path="/client/login" element={<ClientLogin />} />
+      <Route path="/sme" element={<SMEOnboarding />} />
+      <Route path="/sme/collect" element={<SMECollect />} />
+      <Route path="/sme/report" element={<SMEReport />} />
       <Route
         path="/dashboard"
         element={<ConsultantDashboard clients={clients} setClients={setClients} />}

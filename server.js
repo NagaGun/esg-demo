@@ -21,20 +21,24 @@ app.get('/api/test', (req, res) => {
 
 app.post('/api/claude', async (req, res) => {
   console.log('--- NEW REQUEST ---')
+  console.log('Messages count:', req.body.messages?.length)
+  console.log('Roles:', req.body.messages?.map(m => m.role))
 
   try {
-    const userMessage = req.body.messages[0].content
+    // Pass through ALL messages exactly as received
+    // This supports system role messages for precise extraction
+    const messages = req.body.messages || []
 
     const completion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: userMessage }],
-      model: 'llama-3.3-70b-versatile',
+      messages: messages,
+      model: req.body.model || 'llama-3.3-70b-versatile',
       max_tokens: req.body.max_tokens || 1024,
+      temperature: 0.1  // Low temperature = more precise, consistent output
     })
 
     console.log('SUCCESS')
 
     // Format response to match Claude structure
-    // so agent files dont need any changes
     const text = completion.choices[0].message.content
 
     res.json({
@@ -42,8 +46,8 @@ app.post('/api/claude', async (req, res) => {
     })
 
   } catch (error) {
-    console.log('GROQ ERROR:', error.message)
-    res.status(500).json({ error: error.message })
+    console.log('GROQ ERROR:', error.response?.data || error.message)
+    res.status(500).json({ error: error.response?.data || error.message })
   }
 })
 
