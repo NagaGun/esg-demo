@@ -1,0 +1,60 @@
+GRI STANDARDS DATA REQUEST
+Prepared by: EcoAdvisors Consulting
+Client: [Company Name]
+Reporting Period: January 1 – December 31, 2024
+
+SECTION GRI 302 — ENERGY
+
+302-1a. Total fuel consumption within the organization
+from non-renewable sources (diesel, petrol, natural gas)
+Answer: _______________ GJ or kWh
+
+302-1b. Total electricity consumption purchased
+Answer: _______________ kWh
+
+302-1c. What percentage of total energy consumption
+comes from renewable sources?
+Answer: _______________ %
+
+SECTION GRI 305 — EMISSIONS
+
+305-1. Gross direct (Scope 1) GHG emissions
+Answer: _______________ metric tons CO2e
+
+305-2. Gross energy indirect (Scope 2) GHG emissions
+Answer: _______________ metric tons CO2e
+
+SECTION GRI 303 — WATER
+
+303-3. Total water withdrawal from all sources
+Answer: _______________ cubic meters (m3)
+
+SECTION GRI 306 — WASTE
+
+306-3a. Total waste generated
+Answer: _______________ metric tons
+
+306-3b. Percentage of waste diverted
+from disposal (recycled or composted)
+Answer: _______________ %
+
+SECTION GRI 401 — EMPLOYMENT
+
+401-1a. Total number of employees
+Answer: _______________
+
+401-1b. Number of female employees
+Answer: _______________
+
+401-1c. Employee turnover rate
+Answer: _______________ %
+
+SECTION GRI 403 — HEALTH AND SAFETY
+
+403-9. Number of recordable work-related injuries
+Answer: _______________
+
+SECTION GRI 404 — TRAINING
+
+404-1. Average hours of training per employee per year
+Answer: _______________ hours

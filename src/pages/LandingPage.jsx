@@ -59,10 +59,10 @@ export default function LandingPage() {
                 Start Free Trial
               </button>
               <button
-                onClick={() => navigate('/sme')}
+                onClick={() => navigate('/questionnaire')}
                 className="border-2 border-[var(--forest)] text-[var(--forest)] bg-white px-6 py-3 rounded-lg hover:bg-[var(--light-green)] transition font-bold text-lg shadow-sm"
               >
-                I'm a Small Business →
+                Fill My Questionnaire →
               </button>
               <button className="border border-[var(--gray)] text-[var(--gray)] px-6 py-3 rounded-lg hover:bg-gray-50 transition font-medium text-lg">
                 Watch Demo
@@ -299,6 +299,45 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* BANNER */}
+      <div style={{
+        background: '#2D6A4F',
+        padding: '64px 24px',
+        textAlign: 'center',
+        color: 'white'
+      }}>
+        <h2 style={{
+          fontFamily: 'Playfair Display, serif',
+          fontSize: '32px',
+          marginBottom: '16px'
+        }}>
+          Got a questionnaire sitting on your desk?
+        </h2>
+        <p style={{
+          opacity: 0.85,
+          marginBottom: '32px',
+          fontSize: '18px',
+          maxWidth: '600px',
+          margin: '0 auto 32px'
+        }}>
+          Upload it now. We'll extract your data and fill in the answers in minutes.
+        </p>
+        <button onClick={() => navigate('/questionnaire')}
+          style={{
+            background: '#D4A373',
+            color: '#1B1B1B',
+            border: 'none',
+            borderRadius: '12px',
+            padding: '16px 40px',
+            fontSize: '18px',
+            fontWeight: '700',
+            cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.2)'
+          }}>
+          Fill My Questionnaire →
+        </button>
+      </div>
 
       {/* FOOTER */}
       <footer className="bg-[var(--forest)] text-[var(--white)] py-12 px-6">

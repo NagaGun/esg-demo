@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, Navigate } from 'react-router-dom'
 import frameworks from '../data/frameworks'
+import NavBar from '../components/NavBar'
 
 export default function SMEReport() {
     const location = useLocation()
@@ -50,6 +51,41 @@ export default function SMEReport() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stage])
 
+    function getFrameworkStructure(fw) {
+        if (fw === 'vsme') return `
+VSME BASIC MODULE SECTIONS:
+B1 — Basis for Preparation
+B2 — Energy and GHG Emissions
+B3 — Pollution, Water and Waste
+B4 — Own Workforce
+B5 — Business Conduct
+Use section codes B1-B5 in section titles.`
+
+        if (fw === 'gri') return `
+GRI STANDARDS SECTIONS:
+GRI 302 — Energy (electricity, gas, fuel, renewables)
+GRI 303 — Water (withdrawal and consumption)
+GRI 305 — Emissions (Scope 1, Scope 2, intensity)
+GRI 306 — Waste (generated, recycled, disposed)
+GRI 401 — Employment (headcount, turnover)
+GRI 403 — Occupational Health and Safety (injuries)
+GRI 404 — Training and Education (training hours)
+GRI 405 — Diversity (gender breakdown)
+Use GRI standard numbers as section titles (e.g. "GRI 302 — Energy").`
+
+        if (fw === 'cdp') return `
+CDP CLIMATE QUESTIONNAIRE SECTIONS:
+C1 — Governance (board oversight, policies)
+C4 — Targets and Performance (reduction targets)
+C6 — Emissions Data (Scope 1, Scope 2)
+C8 — Energy (consumption, mix, efficiency)
+Use CDP section codes in section titles (e.g. "C6 — Emissions Data").`
+
+        return `
+SECTIONS: Environmental, Social, Governance
+Use standard ESG section structure.`
+    }
+
     async function generateReport() {
         setStage('generating')
 
@@ -83,12 +119,14 @@ export default function SMEReport() {
                         },
                         {
                             role: 'user',
-                            content: `Write a complete ESG report for this small business.
+                            content: `Write a complete ${framework.label} sustainability report for this small business.
 
 COMPANY: ${companyName}
 INDUSTRY: ${industry}
 YEAR: ${reportingYear}
 FRAMEWORK: ${framework.label}
+
+${getFrameworkStructure(selectedFramework)}
 
 DATA COLLECTED:
 ${dataSummary || 'No data provided'}
@@ -98,31 +136,15 @@ ${missingFields.join(', ') || 'None'}
 
 Return ONLY this JSON structure:
 {
-  "reportTitle": "${companyName} Sustainability Report ${reportingYear}",
-  "executiveSummary": "3-4 professional sentences summarizing performance using real numbers from the data",
+  "reportTitle": "${companyName} — ${framework.label} ${reportingYear}",
+  "executiveSummary": "3-4 professional sentences summarizing performance using real numbers from the data. Reference framework-specific metrics where possible.",
   "sections": [
     {
-      "title": "Environmental Performance",
-      "category": "environmental",
-      "narrative": "3-4 sentences using actual environmental data provided",
+      "title": "Section title matching the framework structure above",
+      "category": "environmental/social/governance",
+      "narrative": "3-4 sentences using actual data provided. Use framework-specific terminology.",
       "dataPoints": [
-        { "label": "metric name", "value": "number with unit" }
-      ]
-    },
-    {
-      "title": "Social Performance",
-      "category": "social",
-      "narrative": "3-4 sentences using actual social data",
-      "dataPoints": [
-        { "label": "metric name", "value": "value" }
-      ]
-    },
-    {
-      "title": "Governance",
-      "category": "governance",
-      "narrative": "2-3 sentences about policies and governance",
-      "dataPoints": [
-        { "label": "policy name", "value": "Yes or No" }
+        { "label": "metric name with standard code if applicable", "value": "number with unit" }
       ]
     }
   ],
@@ -133,7 +155,7 @@ Return ONLY this JSON structure:
       "priority": "high/medium/low"
     }
   ],
-  "dataNote": "brief note about data completeness"
+  "dataNote": "brief note about data completeness and methodology"
 }`
                         }
                     ]
@@ -286,56 +308,35 @@ Return ONLY this JSON structure:
       `}</style>
 
             {/* Sticky Top Bar */}
-            <div className="no-print" style={{
-                background: 'white',
-                borderBottom: '1px solid #E5E7EB',
-                padding: '14px 32px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                position: 'sticky',
-                top: 0,
-                zIndex: 100,
-                boxShadow: '0 1px 4px rgba(0,0,0,0.05)'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <button
-                        onClick={() => navigate('/sme')}
-                        style={{
-                            background: 'transparent', border: '1px solid #E5E7EB',
-                            borderRadius: '8px', padding: '8px 16px',
-                            cursor: 'pointer', color: '#6B7280', fontSize: '14px'
-                        }}
-                    >
-                        ← Start Over
-                    </button>
-                    <div style={{ width: '1px', height: '20px', background: '#E5E7EB' }} />
-                    <span style={{ fontSize: '14px', color: '#374151', fontWeight: '500' }}>
-                        {companyName} — {framework.label} {reportingYear}
-                    </span>
-                </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                    <button
-                        onClick={() => { document.title = `${companyName} ESG Report ${reportingYear}`; window.print() }}
-                        style={{
-                            background: '#2D6A4F', color: 'white', border: 'none',
-                            borderRadius: '8px', padding: '10px 18px', cursor: 'pointer',
-                            fontSize: '14px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px'
-                        }}
-                    >
-                        📥 Download PDF
-                    </button>
-                    <button
-                        onClick={() => { navigator.clipboard.writeText(window.location.href); alert('Link copied!') }}
-                        style={{
-                            background: 'white', border: '1px solid #E5E7EB',
-                            borderRadius: '8px', padding: '10px 18px', cursor: 'pointer',
-                            fontSize: '14px', color: '#374151'
-                        }}
-                    >
-                        🔗 Share
-                    </button>
-                </div>
+            <div className="no-print sticky top-0 z-[100]">
+                <NavBar
+                    backTo="/sme"
+                    backLabel="New Report"
+                    rightContent={
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                                onClick={() => { document.title = `${companyName} ESG Report ${reportingYear}`; window.print() }}
+                                style={{
+                                    background: '#2D6A4F', color: 'white', border: 'none',
+                                    borderRadius: '8px', padding: '10px 18px', cursor: 'pointer',
+                                    fontSize: '14px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px'
+                                }}
+                            >
+                                📥 Download PDF
+                            </button>
+                            <button
+                                onClick={() => { navigator.clipboard.writeText(window.location.href); alert('Link copied!') }}
+                                style={{
+                                    background: 'white', border: '1px solid #E5E7EB',
+                                    borderRadius: '8px', padding: '10px 18px', cursor: 'pointer',
+                                    fontSize: '14px', color: '#374151'
+                                }}
+                            >
+                                🔗 Share
+                            </button>
+                        </div>
+                    }
+                />
             </div>
 
             {/* Report Body */}

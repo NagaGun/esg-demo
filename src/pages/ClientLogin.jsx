@@ -1,64 +1,102 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { supabase } from '../supabaseClient'
+import NavBar from '../components/NavBar'
 
 export default function ClientLogin() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
-  const [accessCode, setAccessCode] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
-  function handleSubmit(e) {
+  const handleLogin = async (e) => {
     e.preventDefault()
-    if (accessCode.trim()) {
-      navigate(`/submit/${accessCode.trim()}`)
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (signInError) throw signInError
+
+      // Ensure it's a client
+      if (data.user?.user_metadata?.user_type === 'consultant') {
+        navigate('/dashboard')
+      } else {
+        navigate('/client/dashboard')
+      }
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-earthana-cream flex items-center justify-center px-6" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 mb-6">
-              <span className="text-3xl">🌿</span>
-              <span className="font-playfair text-2xl font-semibold text-earthana-forest">Earthana</span>
-            </Link>
-            <h1 className="font-playfair text-2xl font-bold text-[#1B1B1B] mb-2">Client Portal</h1>
-            <p className="text-[#1B1B1B]/70 text-sm">Enter your access code to submit your data</p>
+    <div className="min-h-screen flex flex-col font-sans bg-[#FEFAE0]">
+      <NavBar showLogo backTo="/" />
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-[32px] shadow-xl p-10 border border-gray-50">
+            <div className="text-center mb-10">
+              <span className="text-5xl mb-4 block">🌿</span>
+              <h1 className="font-playfair text-3xl font-bold text-[#1B1B1B] mb-2">Client Portal</h1>
+              <p className="text-gray-400 text-sm font-medium">Sign in to manage your ESG data requests</p>
+            </div>
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm font-bold">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-6 py-4 rounded-xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-[#2D6A4F]/20 text-gray-700 font-medium transition"
+                  placeholder="name@company.com"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Password</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-6 py-4 rounded-xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-[#2D6A4F]/20 text-gray-700 font-medium transition"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-5 bg-[#2D6A4F] text-white rounded-2xl font-bold shadow-xl shadow-green-900/10 hover:bg-green-800 transition flex items-center justify-center gap-2"
+              >
+                {loading ? 'Signing In...' : 'Sign In'}
+              </button>
+            </form>
+
+            <div className="mt-10 text-center space-y-4">
+              <p className="text-sm text-gray-400 font-medium">
+                Don't have an account yet?
+              </p>
+              <p className="text-xs text-gray-300 leading-relaxed">
+                Check your email for an invite link from your ESG consultant.
+                Invite links automatically guide you through account creation.
+              </p>
+            </div>
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-[#1B1B1B] mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-earthana-forest focus:ring-2 focus:ring-earthana-forest/20 outline-none transition"
-                placeholder="you@company.com"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#1B1B1B] mb-1">Access Code</label>
-              <input
-                type="text"
-                value={accessCode}
-                onChange={(e) => setAccessCode(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-earthana-forest focus:ring-2 focus:ring-earthana-forest/20 outline-none transition font-mono"
-                placeholder="e.g. abc12345"
-                maxLength={10}
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full py-3 rounded-lg bg-earthana-forest text-white font-medium hover:bg-[#245a42] transition"
-            >
-              Access My Portal
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-[#1B1B1B]/70 mt-6">
-            Your access code was sent by your ESG consultant. Check your email or contact them directly.
-          </p>
         </div>
       </div>
     </div>

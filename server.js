@@ -51,6 +51,20 @@ app.post('/api/claude', async (req, res) => {
   }
 })
 
+
+const sgMail = require('@sendgrid/mail')
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+
+app.post('/api/send-email', async (req, res) => {
+  console.log('Portal email for:', req.body.toEmail)
+  console.log('Portal URL:', req.body.portalUrl)
+  // SendGrid integration added post-launch
+  res.json({
+    success: true,
+    note: 'Email logged — SendGrid pending'
+  })
+})
+
 app.listen(3001, () => {
   console.log('Proxy server running on port 3001')
 })

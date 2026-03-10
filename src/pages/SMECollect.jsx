@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import frameworks from '../data/frameworks';
 import { readFileAsText, parseSMEDocument, calculateEmissions } from '../agents/smeExtractor';
+import NavBar from '../components/NavBar';
 
 export default function SMECollect() {
     function safeFixed(value, decimals = 2) {
@@ -436,395 +437,398 @@ Data: ${JSON.stringify(allData)}`
     };
 
     return (
-        <div className="min-h-screen bg-[var(--cream)] font-sans flex flex-col items-center p-6 pb-20">
+        <div className="min-h-screen bg-[var(--cream)] flex flex-col font-sans pb-20">
+            <NavBar backTo="/sme" backLabel="Start Over" title={companyName} />
+            <div className="flex-1 flex flex-col items-center p-6">
 
-            <div className="w-full max-w-5xl mb-12">
-                <div className="flex justify-between relative">
-                    <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -z-10 -translate-y-1/2"></div>
-                    {[
-                        { id: 'upload', num: 1, label: 'Upload Documents' },
-                        { id: 'review', num: 2, label: 'Review Extracted Data' },
-                        { id: 'gaps', num: 3, label: 'Fill Remaining Gaps' },
-                        { id: 'report', num: 4, label: 'Generate Report' }
-                    ].map(s => {
-                        const isActive = step === s.id;
-                        const isPast = ['upload', 'review', 'gaps', 'report'].indexOf(step) > ['upload', 'review', 'gaps', 'report'].indexOf(s.id);
+                <div className="w-full max-w-5xl mb-12">
+                    <div className="flex justify-between relative">
+                        <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -z-10 -translate-y-1/2"></div>
+                        {[
+                            { id: 'upload', num: 1, label: 'Upload Documents' },
+                            { id: 'review', num: 2, label: 'Review Extracted Data' },
+                            { id: 'gaps', num: 3, label: 'Fill Remaining Gaps' },
+                            { id: 'report', num: 4, label: 'Generate Report' }
+                        ].map(s => {
+                            const isActive = step === s.id;
+                            const isPast = ['upload', 'review', 'gaps', 'report'].indexOf(step) > ['upload', 'review', 'gaps', 'report'].indexOf(s.id);
 
-                        return (
-                            <div key={s.id} className="flex flex-col items-center bg-[var(--cream)] px-2">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mb-2 shadow-sm transition ${isActive ? 'bg-[var(--forest)] text-[var(--white)] ring-4 ring-[var(--light-green)]' : isPast ? 'bg-[var(--mint)] text-[var(--forest)] border-2 border-[var(--mint)]' : 'bg-white text-[var(--gray)] border-2 border-gray-200'}`}>
-                                    {isPast ? '✓' : s.num}
+                            return (
+                                <div key={s.id} className="flex flex-col items-center bg-[var(--cream)] px-2">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mb-2 shadow-sm transition ${isActive ? 'bg-[var(--forest)] text-[var(--white)] ring-4 ring-[var(--light-green)]' : isPast ? 'bg-[var(--mint)] text-[var(--forest)] border-2 border-[var(--mint)]' : 'bg-white text-[var(--gray)] border-2 border-gray-200'}`}>
+                                        {isPast ? '✓' : s.num}
+                                    </div>
+                                    <span className={`text-xs font-bold uppercase tracking-wide hidden md:block ${isActive ? 'text-[var(--forest)]' : 'text-gray-400'}`}>
+                                        {s.label}
+                                    </span>
                                 </div>
-                                <span className={`text-xs font-bold uppercase tracking-wide hidden md:block ${isActive ? 'text-[var(--forest)]' : 'text-gray-400'}`}>
-                                    {s.label}
-                                </span>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
 
-            <div className="w-full max-w-5xl">
+                <div className="w-full max-w-5xl">
 
-                {step === 'upload' && (
-                    <div className="animate-fade-in text-center max-w-3xl mx-auto">
-                        <h1 className="font-playfair text-4xl font-bold text-[var(--dark)] mb-4">Upload Your Documents</h1>
-                        <p className="text-[var(--gray)] text-lg mb-10">AI will read these and fill in your data automatically. The more you upload, the less you have to type.</p>
+                    {step === 'upload' && (
+                        <div className="animate-fade-in text-center max-w-3xl mx-auto">
+                            <h1 className="font-playfair text-4xl font-bold text-[var(--dark)] mb-4">Upload Your Documents</h1>
+                            <p className="text-[var(--gray)] text-lg mb-10">AI will read these and fill in your data automatically. The more you upload, the less you have to type.</p>
 
-                        <div className="bg-[var(--white)] rounded-2xl shadow-sm border border-gray-200 p-8 text-left mb-8">
-                            <div className="border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 p-10 text-center hover:bg-gray-100 hover:border-[var(--mint)] transition cursor-pointer mb-8" onClick={() => fileInputRef.current?.click()}>
-                                <div className="text-4xl mb-4">📄</div>
-                                <h3 className="font-bold text-[var(--dark)] text-lg mb-2">Click to select files</h3>
-                                <p className="text-sm text-[var(--gray)]">or drag and drop them here</p>
-                                <p className="text-xs text-gray-400 mt-2">Accepts: .pdf, .txt, .csv, .xlsx</p>
-                                <input type="file" ref={fileInputRef} onChange={handleFileAdd} multiple className="hidden" accept=".pdf,.txt,.csv,.xlsx" />
-                            </div>
+                            <div className="bg-[var(--white)] rounded-2xl shadow-sm border border-gray-200 p-8 text-left mb-8">
+                                <div className="border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 p-10 text-center hover:bg-gray-100 hover:border-[var(--mint)] transition cursor-pointer mb-8" onClick={() => fileInputRef.current?.click()}>
+                                    <div className="text-4xl mb-4">📄</div>
+                                    <h3 className="font-bold text-[var(--dark)] text-lg mb-2">Click to select files</h3>
+                                    <p className="text-sm text-[var(--gray)]">or drag and drop them here</p>
+                                    <p className="text-xs text-gray-400 mt-2">Accepts: .pdf, .txt, .csv, .xlsx</p>
+                                    <input type="file" ref={fileInputRef} onChange={handleFileAdd} multiple className="hidden" accept=".pdf,.txt,.csv,.xlsx" />
+                                </div>
 
-                            {uploadedFiles.length > 0 && (
-                                <div className="mb-8">
-                                    <h4 className="font-bold text-[var(--dark)] mb-4 text-sm uppercase tracking-wide">Ready to process</h4>
-                                    <ul className="space-y-3">
-                                        {uploadedFiles.map(file => (
-                                            <li key={file.id} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-lg">
-                                                <div className="flex items-center gap-3 overflow-hidden">
-                                                    <span className="text-xl shrink-0">{file.status === 'done' ? '✅' : file.status === 'extracting' ? '⏳' : file.status === 'failed' ? '❌' : '📄'}</span>
-                                                    <div className="truncate">
-                                                        <div className="font-medium text-[var(--dark)] text-sm truncate">{file.name}</div>
-                                                        <div className="text-xs text-gray-400 flex items-center gap-2">
-                                                            <span>{file.size}</span>
-                                                            <span>•</span>
-                                                            <span className={file.status === 'done' ? 'text-[var(--forest)] font-semibold' : file.status === 'extracting' ? 'text-amber-500 font-semibold animate-pulse' : file.status === 'failed' ? 'text-red-500 font-semibold' : 'text-gray-500'}>{file.status}{file.error ? ` — ${file.error}` : ''}</span>
+                                {uploadedFiles.length > 0 && (
+                                    <div className="mb-8">
+                                        <h4 className="font-bold text-[var(--dark)] mb-4 text-sm uppercase tracking-wide">Ready to process</h4>
+                                        <ul className="space-y-3">
+                                            {uploadedFiles.map(file => (
+                                                <li key={file.id} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-lg">
+                                                    <div className="flex items-center gap-3 overflow-hidden">
+                                                        <span className="text-xl shrink-0">{file.status === 'done' ? '✅' : file.status === 'extracting' ? '⏳' : file.status === 'failed' ? '❌' : '📄'}</span>
+                                                        <div className="truncate">
+                                                            <div className="font-medium text-[var(--dark)] text-sm truncate">{file.name}</div>
+                                                            <div className="text-xs text-gray-400 flex items-center gap-2">
+                                                                <span>{file.size}</span>
+                                                                <span>•</span>
+                                                                <span className={file.status === 'done' ? 'text-[var(--forest)] font-semibold' : file.status === 'extracting' ? 'text-amber-500 font-semibold animate-pulse' : file.status === 'failed' ? 'text-red-500 font-semibold' : 'text-gray-500'}>{file.status}{file.error ? ` — ${file.error}` : ''}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                {file.status !== 'extracting' && file.status !== 'done' && (
-                                                    <button onClick={() => removeFile(file.id)} className="text-gray-400 hover:text-red-500 transition p-2" title="Remove file">✕</button>
-                                                )}
-                                            </li>
+                                                    {file.status !== 'extracting' && file.status !== 'done' && (
+                                                        <button onClick={() => removeFile(file.id)} className="text-gray-400 hover:text-red-500 transition p-2" title="Remove file">✕</button>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                <div className="bg-[var(--light-green)] border border-[var(--mint)] border-opacity-30 rounded-xl p-6">
+                                    <h4 className="font-bold text-[var(--forest)] mb-3 text-sm flex items-center gap-2"><span className="text-lg">💡</span> We recommend uploading:</h4>
+                                    <div className="grid sm:grid-cols-2 gap-3 pl-7">
+                                        {uploadableFields.map(field => (
+                                            <div key={field.id} className="text-sm text-[var(--dark)] font-medium flex items-center gap-2">
+                                                <span className="opacity-60">•</span>{docMapping[field.id] ? docMapping[field.id].substring(docMapping[field.id].indexOf(' ') + 1) : field.plain}
+                                            </div>
                                         ))}
-                                    </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-center gap-4">
+                                <Link to="/sme" className="bg-white border border-gray-200 text-[var(--dark)] font-bold py-4 px-8 rounded-xl hover:bg-gray-50 transition shadow-sm">Back</Link>
+                                <button disabled={uploadedFiles.length === 0 || extracting} onClick={handleExtract} className="bg-[var(--forest)] text-[var(--white)] font-bold py-4 px-10 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-800 shadow-md flex-1 max-w-xs">
+                                    {extracting ? <><svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Extracting Data...</> : <>Extract Data with AI</>}
+                                </button>
+                            </div>
+                            {uploadedFiles.length === 0 && (
+                                <p className="text-sm text-[var(--gray)] mt-4">Don't have documents right now? <button onClick={() => setStep('gaps')} className="underline text-[var(--forest)] font-semibold">Skip straight to manual entry.</button></p>
+                            )}
+                        </div>
+                    )}
+
+                    {step === 'review' && (
+                        <div className="animate-fade-in w-full">
+                            <div className="text-center mb-10">
+                                <div className="inline-block bg-[var(--light-green)] text-[var(--forest)] font-bold px-4 py-2 rounded-full mb-4 shadow-sm border border-[var(--mint)] border-opacity-30">✨ Extraction Complete</div>
+                                <h1 className="font-playfair text-4xl font-bold text-[var(--dark)] mb-4">Here's what AI found</h1>
+                                <p className="text-[var(--gray)] text-lg max-w-2xl mx-auto">AI filled <strong>{extractedFieldIds.length}</strong> of <strong>{allFields.length}</strong> fields automatically.<strong> {fieldsNeededCount}</strong> files didn't have matches and need your input.</p>
+                            </div>
+
+                            {emissionsBreakdown && emissionsBreakdown.calculation_notes && (
+                                <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-10 max-w-3xl mx-auto shadow-sm">
+                                    <p className="font-bold text-green-800 mb-4 text-center">🌍 Emissions Calculated Automatically</p>
+                                    <div className="grid grid-cols-3 gap-6">
+                                        <div className="text-center bg-white rounded-lg p-3 border border-green-100 shadow-sm">
+                                            <p className="text-3xl font-bold text-green-700">{safeFixed(emissionsBreakdown.scope1_emissions_tco2e)}</p>
+                                            <p className="text-sm font-semibold text-green-900 mt-1">Scope 1 (tCO2e)</p>
+                                        </div>
+                                        <div className="text-center bg-white rounded-lg p-3 border border-green-100 shadow-sm">
+                                            <p className="text-3xl font-bold text-green-700">{safeFixed(emissionsBreakdown.scope2_emissions_tco2e)}</p>
+                                            <p className="text-sm font-semibold text-green-900 mt-1">Scope 2 (tCO2e)</p>
+                                        </div>
+                                        <div className="text-center bg-white rounded-lg p-3 border border-green-100 shadow-sm ring-2 ring-green-300">
+                                            <p className="text-3xl font-bold text-green-700">{safeFixed(emissionsBreakdown.total_emissions_tco2e)}</p>
+                                            <p className="text-sm font-bold text-green-900 mt-1">Total (tCO2e)</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-green-800 opacity-80 mt-4 text-center">{emissionsBreakdown.calculation_notes}</p>
                                 </div>
                             )}
-                            <div className="bg-[var(--light-green)] border border-[var(--mint)] border-opacity-30 rounded-xl p-6">
-                                <h4 className="font-bold text-[var(--forest)] mb-3 text-sm flex items-center gap-2"><span className="text-lg">💡</span> We recommend uploading:</h4>
-                                <div className="grid sm:grid-cols-2 gap-3 pl-7">
-                                    {uploadableFields.map(field => (
-                                        <div key={field.id} className="text-sm text-[var(--dark)] font-medium flex items-center gap-2">
-                                            <span className="opacity-60">•</span>{docMapping[field.id] ? docMapping[field.id].substring(docMapping[field.id].indexOf(' ') + 1) : field.plain}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
 
-                        <div className="flex justify-center gap-4">
-                            <Link to="/sme" className="bg-white border border-gray-200 text-[var(--dark)] font-bold py-4 px-8 rounded-xl hover:bg-gray-50 transition shadow-sm">Back</Link>
-                            <button disabled={uploadedFiles.length === 0 || extracting} onClick={handleExtract} className="bg-[var(--forest)] text-[var(--white)] font-bold py-4 px-10 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-800 shadow-md flex-1 max-w-xs">
-                                {extracting ? <><svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Extracting Data...</> : <>Extract Data with AI</>}
-                            </button>
-                        </div>
-                        {uploadedFiles.length === 0 && (
-                            <p className="text-sm text-[var(--gray)] mt-4">Don't have documents right now? <button onClick={() => setStep('gaps')} className="underline text-[var(--forest)] font-semibold">Skip straight to manual entry.</button></p>
-                        )}
-                    </div>
-                )}
-
-                {step === 'review' && (
-                    <div className="animate-fade-in w-full">
-                        <div className="text-center mb-10">
-                            <div className="inline-block bg-[var(--light-green)] text-[var(--forest)] font-bold px-4 py-2 rounded-full mb-4 shadow-sm border border-[var(--mint)] border-opacity-30">✨ Extraction Complete</div>
-                            <h1 className="font-playfair text-4xl font-bold text-[var(--dark)] mb-4">Here's what AI found</h1>
-                            <p className="text-[var(--gray)] text-lg max-w-2xl mx-auto">AI filled <strong>{extractedFieldIds.length}</strong> of <strong>{allFields.length}</strong> fields automatically.<strong> {fieldsNeededCount}</strong> files didn't have matches and need your input.</p>
-                        </div>
-
-                        {emissionsBreakdown && emissionsBreakdown.calculation_notes && (
-                            <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-10 max-w-3xl mx-auto shadow-sm">
-                                <p className="font-bold text-green-800 mb-4 text-center">🌍 Emissions Calculated Automatically</p>
-                                <div className="grid grid-cols-3 gap-6">
-                                    <div className="text-center bg-white rounded-lg p-3 border border-green-100 shadow-sm">
-                                        <p className="text-3xl font-bold text-green-700">{safeFixed(emissionsBreakdown.scope1_emissions_tco2e)}</p>
-                                        <p className="text-sm font-semibold text-green-900 mt-1">Scope 1 (tCO2e)</p>
+                            <div className="grid md:grid-cols-2 gap-8 mb-10 items-start">
+                                <div className="bg-[var(--white)] shadow-md rounded-2xl overflow-hidden border border-gray-200">
+                                    <div className="bg-[var(--light-green)] p-5 border-b border-[var(--mint)] border-opacity-30 flex items-center gap-3">
+                                        <div className="bg-[var(--forest)] w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">{extractedFieldIds.length}</div>
+                                        <h3 className="font-bold text-lg text-[var(--forest)]">Extracted automatically</h3>
                                     </div>
-                                    <div className="text-center bg-white rounded-lg p-3 border border-green-100 shadow-sm">
-                                        <p className="text-3xl font-bold text-green-700">{safeFixed(emissionsBreakdown.scope2_emissions_tco2e)}</p>
-                                        <p className="text-sm font-semibold text-green-900 mt-1">Scope 2 (tCO2e)</p>
-                                    </div>
-                                    <div className="text-center bg-white rounded-lg p-3 border border-green-100 shadow-sm ring-2 ring-green-300">
-                                        <p className="text-3xl font-bold text-green-700">{safeFixed(emissionsBreakdown.total_emissions_tco2e)}</p>
-                                        <p className="text-sm font-bold text-green-900 mt-1">Total (tCO2e)</p>
-                                    </div>
-                                </div>
-                                <p className="text-sm text-green-800 opacity-80 mt-4 text-center">{emissionsBreakdown.calculation_notes}</p>
-                            </div>
-                        )}
+                                    <div className="p-6">
+                                        {extractedFieldIds.length === 0 ? (
+                                            <div className="text-center py-8"><p className="text-[var(--gray)] italic">No data could be extracted automatically.<br />Continue to fill in manually.</p></div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                {extractedFieldIds.map(fieldId => {
+                                                    const fieldDef = allFields.find(f => f.id === fieldId);
+                                                    const dataObj = collectedData[fieldId];
+                                                    if (!fieldDef) return null;
 
-                        <div className="grid md:grid-cols-2 gap-8 mb-10 items-start">
-                            <div className="bg-[var(--white)] shadow-md rounded-2xl overflow-hidden border border-gray-200">
-                                <div className="bg-[var(--light-green)] p-5 border-b border-[var(--mint)] border-opacity-30 flex items-center gap-3">
-                                    <div className="bg-[var(--forest)] w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">{extractedFieldIds.length}</div>
-                                    <h3 className="font-bold text-lg text-[var(--forest)]">Extracted automatically</h3>
-                                </div>
-                                <div className="p-6">
-                                    {extractedFieldIds.length === 0 ? (
-                                        <div className="text-center py-8"><p className="text-[var(--gray)] italic">No data could be extracted automatically.<br />Continue to fill in manually.</p></div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            {extractedFieldIds.map(fieldId => {
-                                                const fieldDef = allFields.find(f => f.id === fieldId);
-                                                const dataObj = collectedData[fieldId];
-                                                if (!fieldDef) return null;
-
-                                                return (
-                                                    <div key={fieldId} className="flex flex-col gap-2 border-b border-gray-100 pb-4 last:border-0 last:pb-0 hover:bg-gray-50 p-3 -mx-2 rounded transition group">
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-[var(--dark)] mb-1">{fieldDef.plain}</p>
-                                                            <p className="text-xs text-gray-400">Found in: {dataObj.sourceFile}</p>
+                                                    return (
+                                                        <div key={fieldId} className="flex flex-col gap-2 border-b border-gray-100 pb-4 last:border-0 last:pb-0 hover:bg-gray-50 p-3 -mx-2 rounded transition group">
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-[var(--dark)] mb-1">{fieldDef.plain}</p>
+                                                                <p className="text-xs text-gray-400">Found in: {dataObj.sourceFile}</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={dataObj.value}
+                                                                    onChange={e => setCollectedData(prev => ({ ...prev, [fieldId]: { ...dataObj, value: Number(e.target.value) || e.target.value } }))}
+                                                                    className="border border-gray-300 rounded px-2 py-1 text-sm flex-1 font-mono focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                                                                />
+                                                                <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{fieldDef.unit !== 'yes/no' && fieldDef.unit !== 'number' ? fieldDef.unit : ''}</span>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <input
-                                                                type="text"
-                                                                value={dataObj.value}
-                                                                onChange={e => setCollectedData(prev => ({ ...prev, [fieldId]: { ...dataObj, value: Number(e.target.value) || e.target.value } }))}
-                                                                className="border border-gray-300 rounded px-2 py-1 text-sm flex-1 font-mono focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                                                            />
-                                                            <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{fieldDef.unit !== 'yes/no' && fieldDef.unit !== 'number' ? fieldDef.unit : ''}</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="bg-[var(--white)] shadow-md rounded-2xl overflow-hidden border border-gray-200">
-                                <div className="bg-amber-50 p-5 border-b border-amber-200 flex items-center gap-3">
-                                    <div className="bg-amber-500 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">{fieldsNeededCount}</div>
-                                    <h3 className="font-bold text-lg text-amber-900">Still needed</h3>
-                                </div>
-                                <div className="p-6">
-                                    {fieldsNeededCount === 0 ? (
-                                        <div className="text-center py-8">
-                                            <p className="text-green-600 font-bold mb-2">🎉 Perfect extraction!</p>
-                                            <p className="text-[var(--gray)] text-sm">We found everything needed based on your documents.</p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            {allFields.filter(f => !extractedFieldIds.includes(f.id)).map(fieldDef => (
-                                                <div key={fieldDef.id} className="flex justify-between items-start border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                                                    <div className="pr-4">
-                                                        <p className="text-sm font-medium text-[var(--dark)] mb-1">{fieldDef.plain}</p>
-                                                        <p className="text-xs text-amber-600">You'll answer this in the next step</p>
-                                                    </div>
-                                                    <div className="text-right shrink-0">
-                                                        <div className="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-1 rounded text-xs font-bold uppercase tracking-wide">Not found</div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4">
-                            <button className="bg-white border-2 border-[var(--forest)] text-[var(--forest)] font-bold py-4 px-8 rounded-xl hover:bg-[var(--light-green)] transition flex-1 max-w-xs shadow-sm">Edit extracted data</button>
-                            <button onClick={() => setStep('gaps')} className="bg-[var(--forest)] text-[var(--white)] font-bold py-4 px-10 rounded-xl hover:bg-green-800 transition shadow-md flex-1 max-w-xs">Continue to fill gaps →</button>
-                        </div>
-                    </div>
-                )}
-
-                {step === 'gaps' && (
-                    <div className="animate-fade-in w-full max-w-4xl mx-auto">
-                        <div className="text-center mb-10">
-                            <h1 className="font-playfair text-4xl font-bold text-[var(--dark)] mb-4">Complete Your Data</h1>
-                            <p className="text-[var(--gray)] text-lg">We just need a few more details to generate your full ESG report.</p>
-                        </div>
-
-                        {gapFields.length === 0 ? (
-                            <div className="bg-green-50 border border-green-200 rounded-2xl p-10 text-center shadow-sm">
-                                <div className="text-5xl mb-4">🎉</div>
-                                <h2 className="text-2xl font-bold text-green-800 mb-2">Extraction Complete</h2>
-                                <p className="text-green-700 mb-8">AI extracted all required fields from your documents! Review the data above and generate your report.</p>
-                                <button onClick={handleValidate} disabled={validating} className="bg-[var(--forest)] text-white px-8 py-3 rounded-xl font-bold hover:bg-green-800 shadow-md transition disabled:opacity-60">{validating ? 'Validating...' : 'Generate Report →'}</button>
-                            </div>
-                        ) : (
-                            <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-
-                                {/* Tab Switcher */}
-                                <div className="flex border-b border-gray-200 bg-gray-50">
-                                    <button
-                                        onClick={() => setActiveTab('manual')}
-                                        className={`flex-1 py-4 px-6 font-bold text-lg transition-colors border-b-2 ${activeTab === 'manual' ? 'bg-white text-[var(--forest)] border-[var(--forest)]' : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-100'}`}
-                                    >
-                                        ✏️ Fill Manually
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab('upload')}
-                                        className={`flex-1 py-4 px-6 font-bold text-lg transition-colors border-b-2 ${activeTab === 'upload' ? 'bg-white text-[var(--forest)] border-[var(--forest)]' : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-100'}`}
-                                    >
-                                        📄 Upload Form
-                                    </button>
-                                </div>
-
-                                <div className="p-8">
-                                    {/* MANUAL EXCECUTION TAB */}
-                                    {activeTab === 'manual' && (
-                                        <div className="animate-fade-in space-y-12">
-                                            {(() => {
-                                                const grouped = {
-                                                    environmental: gapFields.filter(f => f.category === 'environmental'),
-                                                    social: gapFields.filter(f => f.category === 'social'),
-                                                    governance: gapFields.filter(f => f.category === 'governance')
-                                                };
-
-                                                return (
-                                                    <>
-                                                        {grouped.environmental.length > 0 && (
-                                                            <section>
-                                                                <h3 className="flex items-center gap-2 font-bold text-xl text-green-800 border-b-2 border-green-200 pb-2 mb-6"><span className="text-2xl">🌿</span> Environmental</h3>
-                                                                {grouped.environmental.map(f => renderGapField(f))}
-                                                            </section>
-                                                        )}
-                                                        {grouped.social.length > 0 && (
-                                                            <section>
-                                                                <h3 className="flex items-center gap-2 font-bold text-xl text-blue-800 border-b-2 border-blue-200 pb-2 mb-6"><span className="text-2xl">👥</span> Social</h3>
-                                                                {grouped.social.map(f => renderGapField(f))}
-                                                            </section>
-                                                        )}
-                                                        {grouped.governance.length > 0 && (
-                                                            <section>
-                                                                <h3 className="flex items-center gap-2 font-bold text-xl text-purple-800 border-b-2 border-purple-200 pb-2 mb-6"><span className="text-2xl">🏛</span> Governance</h3>
-                                                                {grouped.governance.map(f => renderGapField(f))}
-                                                            </section>
-                                                        )}
-                                                    </>
-                                                );
-                                            })()}
-
-                                            <div className="border-t border-gray-200 pt-8 mt-10">
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <p className="font-bold text-gray-700">{Object.keys(gapAnswers).length} of {gapFields.length} fields answered</p>
-                                                    <p className="text-sm font-bold text-[var(--forest)]">{Math.round((Object.keys(gapAnswers).length / gapFields.length) * 100)}% Complete</p>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-3 mb-8 overflow-hidden">
-                                                    <div className="bg-[var(--forest)] h-3 rounded-full transition-all duration-500" style={{ width: `${(Object.keys(gapAnswers).length / gapFields.length) * 100}%` }}></div>
-                                                </div>
-
-                                                <button
-                                                    disabled={Object.keys(gapAnswers).length < gapFields.length / 2 || validating}
-                                                    onClick={handleValidate}
-                                                    className="w-full py-4 rounded-xl font-bold bg-[var(--forest)] text-white hover:bg-green-800 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
-                                                >
-                                                    {validating ? 'Validating...' : 'Validate & Continue →'}
-                                                </button>
-                                                <p className="text-center text-sm text-gray-500 mt-3">You need to answer at least 50% of the questions to proceed.</p>
+                                                    );
+                                                })}
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
+                                </div>
 
-                                    {/* UPLOAD FORM TAB */}
-                                    {activeTab === 'upload' && (
-                                        <div className="animate-fade-in w-full">
-                                            {!formFillResult ? (
-                                                <div className="text-center">
-                                                    <h2 className="text-2xl font-bold text-[var(--dark)] mb-2">Upload the form you need to fill</h2>
-                                                    <p className="text-[var(--gray)] mb-8 max-w-lg mx-auto">Upload the questionnaire your bank or customer sent you. AI will match your data to their specific questions automatically.</p>
+                                <div className="bg-[var(--white)] shadow-md rounded-2xl overflow-hidden border border-gray-200">
+                                    <div className="bg-amber-50 p-5 border-b border-amber-200 flex items-center gap-3">
+                                        <div className="bg-amber-500 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">{fieldsNeededCount}</div>
+                                        <h3 className="font-bold text-lg text-amber-900">Still needed</h3>
+                                    </div>
+                                    <div className="p-6">
+                                        {fieldsNeededCount === 0 ? (
+                                            <div className="text-center py-8">
+                                                <p className="text-green-600 font-bold mb-2">🎉 Perfect extraction!</p>
+                                                <p className="text-[var(--gray)] text-sm">We found everything needed based on your documents.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                {allFields.filter(f => !extractedFieldIds.includes(f.id)).map(fieldDef => (
+                                                    <div key={fieldDef.id} className="flex justify-between items-start border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                                        <div className="pr-4">
+                                                            <p className="text-sm font-medium text-[var(--dark)] mb-1">{fieldDef.plain}</p>
+                                                            <p className="text-xs text-amber-600">You'll answer this in the next step</p>
+                                                        </div>
+                                                        <div className="text-right shrink-0">
+                                                            <div className="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-1 rounded text-xs font-bold uppercase tracking-wide">Not found</div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex flex-col sm:flex-row justify-center gap-4">
+                                <button className="bg-white border-2 border-[var(--forest)] text-[var(--forest)] font-bold py-4 px-8 rounded-xl hover:bg-[var(--light-green)] transition flex-1 max-w-xs shadow-sm">Edit extracted data</button>
+                                <button onClick={() => setStep('gaps')} className="bg-[var(--forest)] text-[var(--white)] font-bold py-4 px-10 rounded-xl hover:bg-green-800 transition shadow-md flex-1 max-w-xs">Continue to fill gaps →</button>
+                            </div>
+                        </div>
+                    )}
 
-                                                    <div
-                                                        onClick={() => formUploadRef.current?.click()}
-                                                        className="border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 p-12 hover:bg-gray-100 hover:border-[var(--mint)] transition cursor-pointer flex flex-col items-center justify-center"
+                    {step === 'gaps' && (
+                        <div className="animate-fade-in w-full max-w-4xl mx-auto">
+                            <div className="text-center mb-10">
+                                <h1 className="font-playfair text-4xl font-bold text-[var(--dark)] mb-4">Complete Your Data</h1>
+                                <p className="text-[var(--gray)] text-lg">We just need a few more details to generate your full ESG report.</p>
+                            </div>
+
+                            {gapFields.length === 0 ? (
+                                <div className="bg-green-50 border border-green-200 rounded-2xl p-10 text-center shadow-sm">
+                                    <div className="text-5xl mb-4">🎉</div>
+                                    <h2 className="text-2xl font-bold text-green-800 mb-2">Extraction Complete</h2>
+                                    <p className="text-green-700 mb-8">AI extracted all required fields from your documents! Review the data above and generate your report.</p>
+                                    <button onClick={handleValidate} disabled={validating} className="bg-[var(--forest)] text-white px-8 py-3 rounded-xl font-bold hover:bg-green-800 shadow-md transition disabled:opacity-60">{validating ? 'Validating...' : 'Generate Report →'}</button>
+                                </div>
+                            ) : (
+                                <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+
+                                    {/* Tab Switcher */}
+                                    <div className="flex border-b border-gray-200 bg-gray-50">
+                                        <button
+                                            onClick={() => setActiveTab('manual')}
+                                            className={`flex-1 py-4 px-6 font-bold text-lg transition-colors border-b-2 ${activeTab === 'manual' ? 'bg-white text-[var(--forest)] border-[var(--forest)]' : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-100'}`}
+                                        >
+                                            ✏️ Fill Manually
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveTab('upload')}
+                                            className={`flex-1 py-4 px-6 font-bold text-lg transition-colors border-b-2 ${activeTab === 'upload' ? 'bg-white text-[var(--forest)] border-[var(--forest)]' : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-100'}`}
+                                        >
+                                            📄 Upload Form
+                                        </button>
+                                    </div>
+
+                                    <div className="p-8">
+                                        {/* MANUAL EXCECUTION TAB */}
+                                        {activeTab === 'manual' && (
+                                            <div className="animate-fade-in space-y-12">
+                                                {(() => {
+                                                    const grouped = {
+                                                        environmental: gapFields.filter(f => f.category === 'environmental'),
+                                                        social: gapFields.filter(f => f.category === 'social'),
+                                                        governance: gapFields.filter(f => f.category === 'governance')
+                                                    };
+
+                                                    return (
+                                                        <>
+                                                            {grouped.environmental.length > 0 && (
+                                                                <section>
+                                                                    <h3 className="flex items-center gap-2 font-bold text-xl text-green-800 border-b-2 border-green-200 pb-2 mb-6"><span className="text-2xl">🌿</span> Environmental</h3>
+                                                                    {grouped.environmental.map(f => renderGapField(f))}
+                                                                </section>
+                                                            )}
+                                                            {grouped.social.length > 0 && (
+                                                                <section>
+                                                                    <h3 className="flex items-center gap-2 font-bold text-xl text-blue-800 border-b-2 border-blue-200 pb-2 mb-6"><span className="text-2xl">👥</span> Social</h3>
+                                                                    {grouped.social.map(f => renderGapField(f))}
+                                                                </section>
+                                                            )}
+                                                            {grouped.governance.length > 0 && (
+                                                                <section>
+                                                                    <h3 className="flex items-center gap-2 font-bold text-xl text-purple-800 border-b-2 border-purple-200 pb-2 mb-6"><span className="text-2xl">🏛</span> Governance</h3>
+                                                                    {grouped.governance.map(f => renderGapField(f))}
+                                                                </section>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}
+
+                                                <div className="border-t border-gray-200 pt-8 mt-10">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <p className="font-bold text-gray-700">{Object.keys(gapAnswers).length} of {gapFields.length} fields answered</p>
+                                                        <p className="text-sm font-bold text-[var(--forest)]">{Math.round((Object.keys(gapAnswers).length / gapFields.length) * 100)}% Complete</p>
+                                                    </div>
+                                                    <div className="w-full bg-gray-200 rounded-full h-3 mb-8 overflow-hidden">
+                                                        <div className="bg-[var(--forest)] h-3 rounded-full transition-all duration-500" style={{ width: `${(Object.keys(gapAnswers).length / gapFields.length) * 100}%` }}></div>
+                                                    </div>
+
+                                                    <button
+                                                        disabled={Object.keys(gapAnswers).length < gapFields.length / 2 || validating}
+                                                        onClick={handleValidate}
+                                                        className="w-full py-4 rounded-xl font-bold bg-[var(--forest)] text-white hover:bg-green-800 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
                                                     >
-                                                        <div className="text-5xl mb-4">📋</div>
-                                                        <h3 className="text-xl font-bold text-[var(--dark)] mb-2">Click to select questionnaire</h3>
-                                                        <p className="text-[var(--gray)]">Accepts: .pdf, .txt, .docx, .csv</p>
-                                                        <p className="text-xs text-gray-400 mt-4 leading-relaxed max-w-sm">Examples: bank ESG questionnaire, customer sustainability survey, CDP questionnaire</p>
-
-                                                        <input
-                                                            type="file"
-                                                            ref={formUploadRef}
-                                                            onChange={handleFormUploadProcess}
-                                                            className="hidden"
-                                                            accept=".pdf,.txt,.docx,.csv"
-                                                        />
-                                                    </div>
-
-                                                    {formExtracting && (
-                                                        <div className="mt-8 flex flex-col items-center justify-center pt-6 border-t border-gray-100">
-                                                            <svg className="animate-spin h-8 w-8 text-[var(--forest)] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                            </svg>
-                                                            <p className="font-bold text-[var(--dark)] text-lg">AI is filling your form...</p>
-                                                            <p className="text-gray-500 text-sm mt-1">Cross-referencing {formFileName} with your corporate data.</p>
-                                                        </div>
-                                                    )}
+                                                        {validating ? 'Validating...' : 'Validate & Continue →'}
+                                                    </button>
+                                                    <p className="text-center text-sm text-gray-500 mt-3">You need to answer at least 50% of the questions to proceed.</p>
                                                 </div>
-                                            ) : (
-                                                <div className="animate-fade-in">
-                                                    <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-8 flex items-center justify-between">
-                                                        <div>
-                                                            <h3 className="font-bold text-xl text-green-900">{formFillResult.formTitle || formFileName}</h3>
-                                                            <p className="text-green-700 text-sm mt-1">{formFillResult.completionPct}% complete based on matched items</p>
-                                                        </div>
-                                                        <div className="bg-white rounded-full h-14 w-14 flex items-center justify-center font-bold text-xl text-green-700 shadow-sm border border-green-200">
-                                                            {formFillResult.completionPct}%
-                                                        </div>
-                                                    </div>
+                                            </div>
+                                        )}
 
-                                                    <div className="mb-8">
-                                                        <h4 className="font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Successfully Answered ({formFillResult.filledQuestions?.length || 0})</h4>
-                                                        <div className="space-y-4">
-                                                            {formFillResult.filledQuestions?.map((q, idx) => (
-                                                                <div key={idx} className="bg-gray-50 rounded-lg p-5 border border-gray-200 relative">
-                                                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">{q.questionNumber}</p>
-                                                                    <p className="font-medium text-gray-800 mb-3">{q.question}</p>
-                                                                    <div className="bg-white border-l-4 border-green-500 p-3 rounded shadow-sm text-green-900 font-medium">
-                                                                        {q.answer}
-                                                                    </div>
-                                                                    <div className="mt-3 flex gap-2">
-                                                                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded font-semibold tracking-wide">Source: {q.dataSource}</span>
-                                                                        <span className="text-xs bg-green-100 text-green-800 border border-green-200 px-2 py-1 rounded font-semibold tracking-wide">Confidence: {q.confidence}</span>
-                                                                        {q.needsReview && <span className="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 px-2 py-1 rounded font-bold tracking-wide flex items-center gap-1">⚠️ Review Recommended</span>}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
+                                        {/* UPLOAD FORM TAB */}
+                                        {activeTab === 'upload' && (
+                                            <div className="animate-fade-in w-full">
+                                                {!formFillResult ? (
+                                                    <div className="text-center">
+                                                        <h2 className="text-2xl font-bold text-[var(--dark)] mb-2">Upload the form you need to fill</h2>
+                                                        <p className="text-[var(--gray)] mb-8 max-w-lg mx-auto">Upload the questionnaire your bank or customer sent you. AI will match your data to their specific questions automatically.</p>
 
-                                                    {formFillResult.unansweredQuestions?.length > 0 && (
+                                                        <div
+                                                            onClick={() => formUploadRef.current?.click()}
+                                                            className="border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 p-12 hover:bg-gray-100 hover:border-[var(--mint)] transition cursor-pointer flex flex-col items-center justify-center"
+                                                        >
+                                                            <div className="text-5xl mb-4">📋</div>
+                                                            <h3 className="text-xl font-bold text-[var(--dark)] mb-2">Click to select questionnaire</h3>
+                                                            <p className="text-[var(--gray)]">Accepts: .pdf, .txt, .docx, .csv</p>
+                                                            <p className="text-xs text-gray-400 mt-4 leading-relaxed max-w-sm">Examples: bank ESG questionnaire, customer sustainability survey, CDP questionnaire</p>
+
+                                                            <input
+                                                                type="file"
+                                                                ref={formUploadRef}
+                                                                onChange={handleFormUploadProcess}
+                                                                className="hidden"
+                                                                accept=".pdf,.txt,.docx,.csv"
+                                                            />
+                                                        </div>
+
+                                                        {formExtracting && (
+                                                            <div className="mt-8 flex flex-col items-center justify-center pt-6 border-t border-gray-100">
+                                                                <svg className="animate-spin h-8 w-8 text-[var(--forest)] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                                <p className="font-bold text-[var(--dark)] text-lg">AI is filling your form...</p>
+                                                                <p className="text-gray-500 text-sm mt-1">Cross-referencing {formFileName} with your corporate data.</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="animate-fade-in">
+                                                        <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-8 flex items-center justify-between">
+                                                            <div>
+                                                                <h3 className="font-bold text-xl text-green-900">{formFillResult.formTitle || formFileName}</h3>
+                                                                <p className="text-green-700 text-sm mt-1">{formFillResult.completionPct}% complete based on matched items</p>
+                                                            </div>
+                                                            <div className="bg-white rounded-full h-14 w-14 flex items-center justify-center font-bold text-xl text-green-700 shadow-sm border border-green-200">
+                                                                {formFillResult.completionPct}%
+                                                            </div>
+                                                        </div>
+
                                                         <div className="mb-8">
-                                                            <h4 className="font-bold text-amber-800 mb-4 border-b border-amber-200 pb-2">Cannot Answer ({formFillResult.unansweredQuestions?.length || 0})</h4>
+                                                            <h4 className="font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Successfully Answered ({formFillResult.filledQuestions?.length || 0})</h4>
                                                             <div className="space-y-4">
-                                                                {formFillResult.unansweredQuestions?.map((q, idx) => (
-                                                                    <div key={idx} className="bg-amber-50 rounded-lg p-5 border border-amber-200">
-                                                                        <p className="text-xs font-bold text-amber-700 uppercase tracking-widest mb-1">{q.questionNumber}</p>
-                                                                        <p className="font-medium text-amber-900 mb-3">{q.question}</p>
-                                                                        <div className="bg-white border text-amber-700 border-amber-300 p-3 rounded font-medium text-sm">
-                                                                            <span className="font-bold">Missing Data:</span> {q.reason}
+                                                                {formFillResult.filledQuestions?.map((q, idx) => (
+                                                                    <div key={idx} className="bg-gray-50 rounded-lg p-5 border border-gray-200 relative">
+                                                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">{q.questionNumber}</p>
+                                                                        <p className="font-medium text-gray-800 mb-3">{q.question}</p>
+                                                                        <div className="bg-white border-l-4 border-green-500 p-3 rounded shadow-sm text-green-900 font-medium">
+                                                                            {q.answer}
+                                                                        </div>
+                                                                        <div className="mt-3 flex gap-2">
+                                                                            <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded font-semibold tracking-wide">Source: {q.dataSource}</span>
+                                                                            <span className="text-xs bg-green-100 text-green-800 border border-green-200 px-2 py-1 rounded font-semibold tracking-wide">Confidence: {q.confidence}</span>
+                                                                            {q.needsReview && <span className="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 px-2 py-1 rounded font-bold tracking-wide flex items-center gap-1">⚠️ Review Recommended</span>}
                                                                         </div>
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         </div>
-                                                    )}
 
-                                                    <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
-                                                        <button onClick={() => window.print()} className="flex-1 bg-white border-2 border-[var(--forest)] text-[var(--forest)] px-6 py-4 rounded-xl font-bold hover:bg-[var(--light-green)] transition">
-                                                            Download Filled Form
-                                                        </button>
-                                                        <button onClick={handleValidate} disabled={validating} className="flex-1 bg-[var(--forest)] text-white px-6 py-4 rounded-xl font-bold shadow-md hover:bg-green-800 transition disabled:opacity-60">
-                                                            Continue to Report →
-                                                        </button>
+                                                        {formFillResult.unansweredQuestions?.length > 0 && (
+                                                            <div className="mb-8">
+                                                                <h4 className="font-bold text-amber-800 mb-4 border-b border-amber-200 pb-2">Cannot Answer ({formFillResult.unansweredQuestions?.length || 0})</h4>
+                                                                <div className="space-y-4">
+                                                                    {formFillResult.unansweredQuestions?.map((q, idx) => (
+                                                                        <div key={idx} className="bg-amber-50 rounded-lg p-5 border border-amber-200">
+                                                                            <p className="text-xs font-bold text-amber-700 uppercase tracking-widest mb-1">{q.questionNumber}</p>
+                                                                            <p className="font-medium text-amber-900 mb-3">{q.question}</p>
+                                                                            <div className="bg-white border text-amber-700 border-amber-300 p-3 rounded font-medium text-sm">
+                                                                                <span className="font-bold">Missing Data:</span> {q.reason}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
+                                                            <button onClick={() => window.print()} className="flex-1 bg-white border-2 border-[var(--forest)] text-[var(--forest)] px-6 py-4 rounded-xl font-bold hover:bg-[var(--light-green)] transition">
+                                                                Download Filled Form
+                                                            </button>
+                                                            <button onClick={handleValidate} disabled={validating} className="flex-1 bg-[var(--forest)] text-white px-6 py-4 rounded-xl font-bold shadow-md hover:bg-green-800 transition disabled:opacity-60">
+                                                                Continue to Report →
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
