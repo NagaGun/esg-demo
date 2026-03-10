@@ -7,33 +7,119 @@ export default function ClientDashboard() {
     const [user, setUser] = useState(null)
     const [requests, setRequests] = useState([])
     const [loading, setLoading] = useState(true)
-    const [expandedRequestId, setExpandedRequestId] = useState(null)
+    const [expandedRequest, setExpandedRequest] = useState(null)
 
     useEffect(() => {
-        loadDashboardData()
+        loadRequests()
     }, [])
 
-    async function loadDashboardData() {
-        setLoading(true)
-        const { data: { user: authUser } } = await supabase.auth.getUser()
-        if (!authUser) {
-            navigate('/client/login')
-            return
-        }
-        setUser(authUser)
-
+    const loadRequests = async () => {
         try {
-            // Find all client records matching this user's ID or email
-            const { data, error } = await supabase
+            setLoading(true)
+            const { data: userData } = await supabase.auth.getUser()
+
+            if (!userData?.user) {
+                navigate('/client/login')
+                return
+            }
+            setUser(userData.user)
+
+            // Step 1: get client records
+            const { data: clientRecords, error: clientError } = await supabase
                 .from('clients')
-                .select('*, consultants(full_name), submissions(*)')
-                .or(`client_user_id.eq.${authUser.id},contact_email.eq.${authUser.email}`)
+                .select('*, consultants(full_name)')
+                .or(
+                    `client_user_id.eq.${userData.user.id},` +
+                    `contact_email.eq.${userData.user.email}`
+                )
                 .order('created_at', { ascending: false })
 
-            if (error) throw error
-            setRequests(data || [])
+            if (clientError) {
+                console.error('Client load error:', clientError)
+                setRequests([])
+                return
+            }
+
+            console.log('Client records:', clientRecords?.length)
+
+            if (!clientRecords?.length) {
+                setRequests([])
+                setLoading(false)
+                return
+            }
+
+            // Step 2: get submissions for each client
+            const clientIds = clientRecords
+                .map(c => c.id)
+                .filter(Boolean)
+
+            const accessCodes = clientRecords
+                .map(c => c.access_code)
+                .filter(Boolean)
+
+            console.log('Looking for client IDs:', clientIds)
+            console.log('Looking for access codes:', accessCodes)
+
+            // Try fetching by client_id first
+            let submissionsData = []
+
+            if (clientIds.length > 0) {
+              const { data: subsByClientId } = await supabase
+                .from('submissions')
+                .select('*')
+                .in('client_id', clientIds)
+              
+              console.log('Subs by client_id:', 
+                subsByClientId?.length)
+              
+              if (subsByClientId?.length) {
+                submissionsData = subsByClientId
+              }
+            }
+
+            // Also try by access_code and merge results
+            if (accessCodes.length > 0) {
+              const { data: subsByCode } = await supabase
+                .from('submissions')
+                .select('*')
+                .in('access_code', accessCodes)
+              
+              console.log('Subs by access_code:', 
+                subsByCode?.length)
+              
+              if (subsByCode?.length) {
+                // Merge without duplicates
+                const existingIds = new Set(
+                  submissionsData.map(s => s.id)
+                )
+                subsByCode.forEach(s => {
+                  if (!existingIds.has(s.id)) {
+                    submissionsData.push(s)
+                  }
+                })
+              }
+            }
+
+            console.log('Total submissions found:', 
+              submissionsData.length)
+
+            // Step 3: merge submissions into client records matching BOTH ways
+            const merged = clientRecords.map(client => ({
+                ...client,
+                submissions: submissionsData.filter(s =>
+                    s.access_code === client.access_code ||
+                    s.client_id === client.id
+                )
+            }))
+
+            console.log('Merged requests:', merged.length)
+            console.log('First request submissions:', merged[0]?.submissions?.length)
+
+            setRequests(merged)
+
         } catch (err) {
-            console.error('Error loading dashboard:', err)
+            console.error('loadRequests error:', err)
+            setRequests([])
         } finally {
             setLoading(false)
         }
@@ -57,7 +143,10 @@ export default function ClientDashboard() {
     const getButtonConfig = (request) => {
         const status = request.invite_status || 'Pending'
         if (status === 'Submitted') {
-            return { text: 'View Submission →', action: () => setExpandedRequestId(expandedRequestId === request.id ? null : request.id) }
+            return {
+                text: expandedRequest === request.id ? '▲ Hide Submission' : '▼ View Submission →',
+                action: () => setExpandedRequest(expandedRequest === request.id ? null : request.id)
+            }
         }
         if (status === 'In Progress') {
             return { text: 'Continue Upload →', action: () => navigate(`/client/portal/${request.access_code}`) }
@@ -66,63 +155,6 @@ export default function ClientDashboard() {
             return { text: 'Start Uploading →', action: () => navigate(`/client/portal/${request.access_code}`) }
         }
         return { text: 'Accept & Start →', action: () => navigate(`/client/portal/${request.access_code}`) }
-    }
-
-    const renderSubmissionSummary = (submission) => {
-        if (!submission) return null
-
-        return (
-            <div className="mt-6 p-6 bg-white rounded-2xl border border-gray-100 shadow-inner animate-fadeIn">
-                <h4 className="font-bold text-[#2D6A4F] mb-4 flex items-center gap-2">
-                    <span>📋</span> Submission Summary
-                </h4>
-
-                <div className="space-y-6">
-                    {submission.extracted_data && Object.keys(submission.extracted_data).length > 0 && (
-                        <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Automated Extraction</p>
-                            <div className="grid grid-cols-2 gap-4">
-                                {Object.entries(submission.extracted_data).slice(0, 6).map(([k, v]) => (
-                                    <div key={k} className="flex justify-between border-b border-gray-50 pb-1">
-                                        <span className="text-xs text-gray-500 capitalize">{k.replace('_', ' ')}</span>
-                                        <span className="text-xs font-bold font-mono">{v}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {submission.manual_answers && Object.keys(submission.manual_answers).length > 0 && (
-                        <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Questionnaire Answers</p>
-                            <div className="grid grid-cols-2 gap-4">
-                                {Object.entries(submission.manual_answers).slice(0, 4).map(([k, v]) => (
-                                    <div key={k} className="flex justify-between border-b border-gray-50 pb-1">
-                                        <span className="text-xs text-gray-500 capitalize">{k.replace('_', ' ')}</span>
-                                        <span className={`text-[10px] font-bold ${typeof v === 'boolean' ? (v ? 'text-green-600' : 'text-red-500') : ''}`}>
-                                            {v === true ? 'Yes' : v === false ? 'No' : v}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                        <div className="text-[10px] text-gray-400">
-                            <span className="font-bold">Submitted:</span> {new Date(submission.submitted_at || submission.created_at).toLocaleDateString()}
-                        </div>
-                        <div className="text-[10px] text-gray-400">
-                            <span className="font-bold">Docs:</span> {submission.documents?.length || 0} files
-                        </div>
-                    </div>
-
-                    <div className="bg-green-50 p-3 rounded-lg text-center text-[10px] font-bold text-green-700 uppercase tracking-widest">
-                        ✅ This submission is complete
-                    </div>
-                </div>
-            </div>
-        )
     }
 
     if (loading) {
@@ -186,7 +218,7 @@ export default function ClientDashboard() {
                             const config = getButtonConfig(req)
                             return (
                                 <div key={req.id} className="group">
-                                    <div className={`bg-white rounded-3xl p-8 shadow-sm transition-all border-l-[12px] hover:shadow-xl hover:translate-x-1 ${expandedRequestId === req.id ? 'translate-x-1 ring-2 ring-[#2D6A4F]/10' : ''}`} style={{ borderLeftColor: getStatusColor(status) }}>
+                                    <div className={`bg-white rounded-3xl p-8 shadow-sm transition-all border-l-[12px] hover:shadow-xl hover:translate-x-1 ${expandedRequest === req.id ? 'translate-x-1 ring-2 ring-[#2D6A4F]/10' : ''}`} style={{ borderLeftColor: getStatusColor(status) }}>
                                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-6">
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-3">
@@ -217,7 +249,154 @@ export default function ClientDashboard() {
                                             </div>
                                         </div>
 
-                                        {expandedRequestId === req.id && renderSubmissionSummary(req.submissions?.[0])}
+                                        {expandedRequest === req.id && (
+                                            <div style={{
+                                                background: '#F9FAFB',
+                                                border: '1px solid #E5E7EB',
+                                                borderTop: 'none',
+                                                borderRadius: '0 0 12px 12px',
+                                                padding: '24px'
+                                            }}>
+                                                {req.submissions && req.submissions.length > 0 ? (
+                                                    <div>
+                                                        <h4 style={{
+                                                            fontFamily: 'Playfair Display, serif',
+                                                            fontSize: '16px',
+                                                            marginBottom: '16px',
+                                                            color: '#1B1B1B'
+                                                        }}>
+                                                            Your Submission Summary
+                                                        </h4>
+
+                                                        {/* Extracted Data Table */}
+                                                        {req.submissions[0].extracted_data && Object.keys(req.submissions[0].extracted_data).length > 0 && (
+                                                            <div style={{ marginBottom: '20px' }}>
+                                                                <p style={{
+                                                                    fontSize: '13px',
+                                                                    fontWeight: '600',
+                                                                    color: '#2D6A4F',
+                                                                    marginBottom: '8px'
+                                                                }}>
+                                                                    📄 Extracted from Documents
+                                                                </p>
+                                                                <table style={{
+                                                                    width: '100%',
+                                                                    borderCollapse: 'collapse',
+                                                                    fontSize: '13px'
+                                                                }}>
+                                                                    <tbody>
+                                                                        {Object.entries(req.submissions[0].extracted_data)
+                                                                            .filter(([k, v]) => v !== null && v !== undefined)
+                                                                            .map(([key, value]) => (
+                                                                                <tr key={key} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                                                                                    <td style={{
+                                                                                        padding: '6px 8px',
+                                                                                        color: '#6B7280',
+                                                                                        width: '55%',
+                                                                                        textTransform: 'capitalize'
+                                                                                    }}>
+                                                                                        {key.replace(/_/g, ' ')}
+                                                                                    </td>
+                                                                                    <td style={{
+                                                                                        padding: '6px 8px',
+                                                                                        color: '#1B1B1B',
+                                                                                        fontWeight: '500'
+                                                                                    }}>
+                                                                                        {typeof value === 'boolean'
+                                                                                            ? (value ? 'Yes' : 'No')
+                                                                                            : String(value)}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Manual Answers Table */}
+                                                        {req.submissions[0].manual_answers && Object.keys(req.submissions[0].manual_answers).length > 0 && (
+                                                            <div style={{ marginBottom: '20px' }}>
+                                                                <p style={{
+                                                                    fontSize: '13px',
+                                                                    fontWeight: '600',
+                                                                    color: '#D4A373',
+                                                                    marginBottom: '8px'
+                                                                }}>
+                                                                    ✏️ Manually Entered
+                                                                </p>
+                                                                <table style={{
+                                                                    width: '100%',
+                                                                    borderCollapse: 'collapse',
+                                                                    fontSize: '13px'
+                                                                }}>
+                                                                    <tbody>
+                                                                        {Object.entries(req.submissions[0].manual_answers)
+                                                                            .filter(([k, v]) => v !== null && v !== undefined)
+                                                                            .map(([key, value]) => (
+                                                                                <tr key={key} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                                                                                    <td style={{
+                                                                                        padding: '6px 8px',
+                                                                                        color: '#6B7280',
+                                                                                        width: '55%',
+                                                                                        textTransform: 'capitalize'
+                                                                                    }}>
+                                                                                        {key.replace(/_/g, ' ')}
+                                                                                    </td>
+                                                                                    <td style={{
+                                                                                        padding: '6px 8px',
+                                                                                        color: '#1B1B1B',
+                                                                                        fontWeight: '500'
+                                                                                    }}>
+                                                                                        {typeof value === 'boolean'
+                                                                                            ? (value ? 'Yes' : 'No')
+                                                                                            : String(value)}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Footer */}
+                                                        <div style={{
+                                                            borderTop: '1px solid #E5E7EB',
+                                                            paddingTop: '12px',
+                                                            fontSize: '12px',
+                                                            color: '#9CA3AF'
+                                                        }}>
+                                                            <p>📎 Documents: {
+                                                                (req.submissions[0].documents || [])
+                                                                    .join(', ') || 'None listed'
+                                                            }</p>
+                                                            <p style={{ marginTop: '4px' }}>
+                                                                🕐 Submitted: {new Date(
+                                                                    req.submissions[0].submitted_at
+                                                                ).toLocaleDateString('en-US', {
+                                                                    year: 'numeric',
+                                                                    month: 'long',
+                                                                    day: 'numeric'
+                                                                })}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div style={{
+                                                        padding: '24px',
+                                                        textAlign: 'center',
+                                                        color: '#6B7280',
+                                                        fontSize: '14px'
+                                                    }}>
+                                                        No submission data found.
+                                                        <br />
+                                                        <small style={{ color: '#9CA3AF' }}>
+                                                            If you submitted recently,
+                                                            try refreshing the page.
+                                                        </small>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )

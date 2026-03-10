@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
-import NavBar from '../components/NavBar'
 import { readFileAsText, parseSMEDocument, calculateEmissionsLocally } from '../agents/smeExtractor'
 import frameworks from '../data/frameworks'
 
@@ -34,42 +33,73 @@ export default function ClientPortal() {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState(null)
   const [extractionStatus, setExtractionStatus] = useState(0)
+  // Bug 1: localStorage persistence state
+  const [savedFileNames, setSavedFileNames] = useState([])
+  const [extractionComplete, setExtractionComplete] = useState(false)
 
-  // Robust lookup
+  const STORAGE_KEY = `earthana_portal_${accessCode}`
+
+  // Bug 1+3: Load client and restore localStorage state
   useEffect(() => {
-    const loadClient = async () => {
+    const loadPortal = async () => {
       setLoading(true)
-      try {
-        const { data, error: queryError } = await supabase
-          .from('clients')
-          .select('*')
-          .eq('access_code', accessCode)
-          .single()
 
-        if (queryError || !data) {
-          setClientNotFound(true)
-          setLoading(false)
-          return
+      // Check for saved state first
+      const saved = localStorage.getItem(`earthana_portal_${accessCode}`)
+      if (saved) {
+        try {
+          const state = JSON.parse(saved)
+          const savedAt = new Date(state.savedAt)
+          const hoursSince = (Date.now() - savedAt) / (1000 * 60 * 60)
+          if (hoursSince < 24) {
+            setSmeData(state.smeData || {})
+            smeDataRef.current = state.smeData || {}
+            setExtractionComplete(state.extractionComplete || false)
+            setSavedFileNames(state.uploadedFileNames || [])
+            console.log('Restored portal state from save')
+          }
+        } catch (e) {
+          console.warn('Could not restore state:', e)
         }
-
-        setClient({
-          ...data,
-          consultantName: 'Your ESG Consultant'
-        })
-        setLoading(false)
-      } catch (err) {
-        console.error('Portal load error:', err)
-        setClientNotFound(true)
-        setLoading(false)
       }
+
+      // Still load client data from Supabase
+      await loadClient()
     }
+
     if (accessCode) {
-      loadClient()
+      loadPortal()
     } else {
       setClientNotFound(true)
       setLoading(false)
     }
   }, [accessCode])
+
+  async function loadClient() {
+    try {
+      const { data, error: queryError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('access_code', accessCode)
+        .single()
+
+      if (queryError || !data) {
+        setClientNotFound(true)
+        setLoading(false)
+        return
+      }
+
+      setClient({
+        ...data,
+        consultantName: 'Your ESG Consultant'
+      })
+      setLoading(false)
+    } catch (err) {
+      console.error('Portal load error:', err)
+      setClientNotFound(true)
+      setLoading(false)
+    }
+  }
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files)
@@ -133,6 +163,18 @@ export default function ClientPortal() {
       const fullData = { ...extracted, ...emissions }
       setSmeData(fullData)
       smeDataRef.current = fullData
+      setExtractionComplete(true)
+
+      // Bug 1: Save state to localStorage so navigation back doesn't lose work
+      const portalState = {
+        step: 2,
+        smeData: fullData,
+        uploadedFileNames: uploadedFiles.map(f => f.name),
+        extractionComplete: true,
+        savedAt: new Date().toISOString()
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(portalState))
+
       setStep(2)
     } catch (err) {
       console.error('Extraction Error:', err)
@@ -188,6 +230,9 @@ export default function ClientPortal() {
 
       await supabase.from('clients').update({ invite_status: 'Submitted' }).eq('access_code', accessCode)
 
+      // Bug 1: Clear localStorage after successful submit
+      localStorage.removeItem(STORAGE_KEY)
+
       setSubmitted(true)
       setStep(3)
     } catch (err) {
@@ -228,7 +273,7 @@ export default function ClientPortal() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans overflow-x-hidden">
-      {/* NAVBAR */}
+      {/* NAVBAR — Bug 3: back button always goes to /client/dashboard */}
       <nav className="h-[60px] bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-50 shadow-sm">
         <button onClick={() => navigate('/client/dashboard')} className="flex items-center gap-2 group">
           <span className="text-gray-400 group-hover:text-[#2D6A4F] transition">←</span>
@@ -289,7 +334,8 @@ export default function ClientPortal() {
                 <h3 className="font-playfair text-2xl font-bold mb-6">Required Documentation</h3>
                 <div className="space-y-4">
                   {REQUIRED_DOCS.filter(cat => client.framework?.toUpperCase() === 'CDP' ? ['electricity', 'gas', 'fuel'].includes(cat.id) : true).map(cat => {
-                    const isDone = uploadedFiles.some(f => f.category === cat.id)
+                    const isDone = uploadedFiles.some(f => f.category === cat.id) ||
+                      savedFileNames.some(name => cat.match.some(m => name.toLowerCase().includes(m)))
                     return (
                       <div key={cat.id} className={`p-6 rounded-3xl border-2 transition-all ${isDone ? 'bg-green-50 border-green-500 shadow-sm shadow-green-900/5' : 'bg-white border-gray-100 hover:border-[#2D6A4F]'}`}>
                         <div className="flex justify-between items-start mb-2">
@@ -306,6 +352,60 @@ export default function ClientPortal() {
 
               <div className="bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm text-center">
                 <h3 className="text-xl font-bold mb-6">Upload Center</h3>
+
+                {/* Bug 1: Previously uploaded files section */}
+                {savedFileNames.length > 0 && (
+                  <div style={{
+                    background: '#F0FFF4',
+                    border: '1px solid #74C69D',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    marginBottom: '20px',
+                    textAlign: 'left'
+                  }}>
+                    <p style={{ fontWeight: '600', color: '#2D6A4F', marginBottom: '8px', fontSize: '14px' }}>
+                      ✅ Previously uploaded files
+                    </p>
+                    {savedFileNames.map(name => (
+                      <div key={name} style={{ fontSize: '13px', color: '#374151', padding: '4px 0' }}>
+                        📄 {name}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setStep(2)}
+                      style={{
+                        marginTop: '12px',
+                        background: '#2D6A4F',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '10px 16px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        width: '100%'
+                      }}>
+                      Continue Where You Left Off →
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSavedFileNames([])
+                        localStorage.removeItem(STORAGE_KEY)
+                      }}
+                      style={{
+                        marginTop: '8px',
+                        background: 'none',
+                        color: '#6B7280',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        width: '100%'
+                      }}>
+                      Start fresh instead
+                    </button>
+                  </div>
+                )}
+
                 <label className="block border-4 border-dashed border-gray-50 rounded-[40px] p-20 hover:border-[#2D6A4F] transition cursor-pointer bg-gray-50 group mb-8">
                   <span className="text-7xl mb-4 block group-hover:scale-110 transition animate-pulse">📤</span>
                   <span className="text-lg font-bold text-gray-400">Add Documents</span>
@@ -346,7 +446,24 @@ export default function ClientPortal() {
         {step === 2 && (
           <div className="animate-fadeIn max-w-3xl mx-auto space-y-12">
             <div>
-              <button onClick={() => setStep(1)} className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-[#2D6A4F] transition mb-4">← Back to Upload (Data will be kept)</button>
+              {/* Bug 2: Back button at top of Step 2 */}
+              <button
+                onClick={() => setStep(1)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'none',
+                  border: 'none',
+                  color: '#2D6A4F',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  fontFamily: 'DM Sans, Arial, sans-serif',
+                  padding: '0 0 16px 0'
+                }}>
+                ← Back to Documents
+              </button>
               <h2 className="font-playfair text-4xl font-bold text-[#1B1B1B] mb-2">Final Data Approval</h2>
               <p className="text-gray-400 font-medium">Please review and complete the fields below.</p>
             </div>
@@ -422,10 +539,29 @@ export default function ClientPortal() {
 
         {step === 3 && (
           <div className="animate-fadeIn max-w-2xl mx-auto text-center py-20 px-6">
+            {/* Bug 2: Back button at top of Step 3 */}
+            <button
+              onClick={() => navigate('/client/dashboard')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'none',
+                border: 'none',
+                color: '#2D6A4F',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: '600',
+                fontFamily: 'DM Sans, Arial, sans-serif',
+                padding: '0 0 24px 0',
+                marginBottom: '8px'
+              }}>
+              ← Back to Dashboard
+            </button>
             <div className="w-32 h-32 bg-green-100 text-[#2D6A4F] rounded-full flex items-center justify-center text-6xl mx-auto mb-10 shadow-inner">✓</div>
             <h1 className="font-playfair text-5xl font-bold text-[#2D6A4F] mb-4">Submission Received</h1>
             <p className="text-xl text-gray-400 font-medium mb-12">Thank you! Your ESG data has been securely shared with your consultant for {client.reporting_year}.</p>
-            <button onClick={() => navigate('/client/dashboard')} className="w-full py-5 bg-[#2D6A4F] text-white rounded-3xl font-bold text-xl shadow-xl hover:bg-green-800 transition">Back to Dashboard</button>
+            <button onClick={() => navigate('/client/dashboard')} className="w-full py-5 bg-[#2D6A4F] text-white rounded-3xl font-bold text-xl shadow-xl hover:bg-green-800 transition">← Back to Dashboard</button>
           </div>
         )}
       </div>

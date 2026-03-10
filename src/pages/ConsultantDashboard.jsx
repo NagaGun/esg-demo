@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { readFileAsText, parseQuestionnaire, fillQuestionnaire } from '../agents/smeExtractor'
 
 // Constants for styles
 const COLORS = {
@@ -65,9 +66,10 @@ export default function ConsultantDashboard() {
   // Submissions
   const [submission, setSubmission] = useState(null)
 
-  // AI Review
+  // AI Review (Bugs 2 added state)
   const [aiSummary, setAiSummary] = useState('')
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
+  const [copyMsgDone, setCopyMsgDone] = useState(false)
 
   // Template Fill
   const [templateFile, setTemplateFile] = useState(null)
@@ -75,6 +77,7 @@ export default function ConsultantDashboard() {
   const [processingStep, setProcessingStep] = useState(0)
   const [filledAnswers, setFilledAnswers] = useState([])
   const [copyAnswersDone, setCopyAnswersDone] = useState(false)
+  const [fillError, setFillError] = useState(null)
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
@@ -146,6 +149,7 @@ export default function ConsultantDashboard() {
       setAiSummary('')
       setFilledAnswers([])
       setTemplateFile(null)
+      setFillError(null)
     }
   }, [selectedClient])
 
@@ -193,8 +197,8 @@ export default function ConsultantDashboard() {
     if (filledAnswers.length === 0) return
 
     const text = filledAnswers.map(a =>
-      `${a.q}\n` +
-      `Answer: ${a.a || '[Not answered]'}` +
+      `${a.q || a.question}\n` +
+      `Answer: ${a.a || a.answer || '[Not answered]'}` +
       '\n'
     ).join('\n')
 
@@ -239,55 +243,82 @@ export default function ConsultantDashboard() {
     }
   }
 
-  const handleProcessTemplate = async () => {
-    if (!templateFile || !submission) return
-    setIsProcessingTemplate(true)
-
-    const steps = ["📄 Reading your template...", "🔍 Extracting questions...", "✍️ Filling answers...", "✅ Almost done..."]
-    for (let i = 0; i < steps.length; i++) {
-      setProcessingStep(i)
-      await new Promise(r => setTimeout(r, 1000))
+  // Bug 2: Copy message
+  const handleCopyMessage = async () => {
+    if (!aiSummary) return
+    try {
+      await navigator.clipboard.writeText(aiSummary)
+      setCopyMsgDone(true)
+      setTimeout(() => setCopyMsgDone(false), 2000)
+    } catch(err) {
+      const el = document.createElement('textarea')
+      el.value = aiSummary
+      el.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
+      document.body.appendChild(el)
+      el.focus()
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+      setCopyMsgDone(true)
+      setTimeout(() => setCopyMsgDone(false), 2000)
     }
+  }
+
+  // Bug 1: process template
+  const handleProcessTemplate = async () => {
+    console.log('=== handleFillTemplate START ===')
+    console.log('Template file:', templateFile?.name)
+    console.log('Selected client:', selectedClient?.company_name)
+    console.log('Submission exists:', !!selectedClient?.submission)
+    console.log('Extracted data keys:', Object.keys(selectedClient?.submission?.extracted_data || {}))
+
+    if (!templateFile || !selectedClient) return
+    setIsProcessingTemplate(true)
+    setFillError(null)
 
     try {
-      // Build complete client data
+      const text = await readFileAsText(templateFile)
+      console.log('Template text length:', text.length)
+      
+      const parsed = await parseQuestionnaire(text)
+      console.log('Parsed questions:', parsed?.questions?.length)
+
+      // Build complete merged data object
+      const extractedData = submission?.extracted_data || {}
+      const manualAnswers = submission?.manual_answers || {}
+
       const clientData = {
         company_name: selectedClient.company_name,
         framework: selectedClient.framework,
         reporting_year: selectedClient.reporting_year,
-        ...(submission.extracted_data || {}),
-        ...(submission.manual_answers || {}),
+        contact_name: selectedClient.contact_name,
+        ...extractedData,
+        ...manualAnswers
       }
 
-      // Read template text (Mock for now, normally would use a helper)
-      const prompt = `Fill this ESG questionnaire using the company data.
-      COMPANY: ${clientData.company_name}
-      DATA: ${JSON.stringify(clientData)}
-      
-      Return a JSON array: [{"q": "Question", "a": "Answer", "conf": "high/med/low", "source": "Source name"}]
-      Only generate 4 example answers for demo.`
+      console.log('Client data keys:', Object.keys(clientData))
+      console.log('Client data:', clientData)
 
-      const res = await fetch('http://localhost:3001/api/claude', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: prompt }]
-        })
-      })
-      const aiRes = await res.json()
-      const result = JSON.parse(aiRes.content[0].text)
-      setFilledAnswers(result)
-    } catch (err) {
-      console.error('Template fill failed:', err)
-      // Fallback mock
-      setFilledAnswers([
-        { q: "Total Scope 2 Emissions?", a: submission.extracted_data.scope2_tco2e || "42.5", conf: "high", source: "Electricity Bill" },
-        { q: "Ethics Policy exists?", a: submission.manual_answers.has_ethics_policy ? "Yes" : "No", conf: "high", source: "Manual Input" }
-      ])
+      const result = await fillQuestionnaire(parsed, clientData)
+
+      console.log('Fill result:', result)
+      console.log('Answers count:', result?.filledAnswers?.length)
+
+      if (!result?.filledAnswers?.length) {
+        setFillError('No answers generated. Check console for details.')
+        return
+      }
+
+      setFilledAnswers(result.filledAnswers)
+      setProcessingStep(3) // Optional: Just to show 'done'
+    } catch(err) {
+      console.error('Fill template error:', err)
+      setFillError('Failed: ' + err.message)
     } finally {
       setIsProcessingTemplate(false)
     }
   }
+
 
   const handleDownloadPDF = () => {
     const win = window.open('', '_blank')
@@ -299,7 +330,7 @@ export default function ConsultantDashboard() {
         </head>
         <body>
           <h1>ESG Report: ${selectedClient.company_name}</h1>
-          ${filledAnswers.map(ans => `<div class="item"><div class="q">${ans.q}</div><div>${ans.a}</div></div>`).join('')}
+          ${filledAnswers.map(ans => `<div class="item"><div class="q">${ans.q || ans.question}</div><div>${ans.a || ans.answer}</div></div>`).join('')}
         </body>
       </html>
     `
@@ -451,18 +482,18 @@ export default function ConsultantDashboard() {
 
               <div className="flex-1 p-8 overflow-y-auto">
                 {activeTab === 'Overview' && (
-                  <div className="grid grid-cols-2 gap-6 max-w-4xl">
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                      <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-1">Contact</p>
-                      <p className="text-lg font-bold text-[#1B1B1B]">{selectedClient.contact_name}</p>
-                      <p className="text-sm text-gray-400">{selectedClient.contact_email}</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                      <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-1">Deadline</p>
-                      <p className="text-lg font-bold text-[#1B1B1B]">{selectedClient.deadline || 'Not set'}</p>
-                      <p className="text-sm text-gray-400">Portal invited via email</p>
-                    </div>
-                  </div>
+                 <div className="grid grid-cols-2 gap-6 max-w-4xl">
+                   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                     <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-1">Contact</p>
+                     <p className="text-lg font-bold text-[#1B1B1B]">{selectedClient.contact_name}</p>
+                     <p className="text-sm text-gray-400">{selectedClient.contact_email}</p>
+                   </div>
+                   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                     <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-1">Deadline</p>
+                     <p className="text-lg font-bold text-[#1B1B1B]">{selectedClient.deadline || 'Not set'}</p>
+                     <p className="text-sm text-gray-400">Portal invited via email</p>
+                   </div>
+                 </div>
                 )}
 
                 {activeTab === 'Submitted Data' && (
@@ -518,7 +549,28 @@ export default function ConsultantDashboard() {
                         {isGeneratingAI ? (
                           <div className="animate-pulse flex items-center gap-4 text-2xl font-playfair italic">🌿 Thinking...</div>
                         ) : aiSummary ? (
-                          <p className="text-xl font-playfair leading-relaxed italic">"{aiSummary}"</p>
+                          <>
+                            <p className="text-xl font-playfair leading-relaxed italic">"{aiSummary}"</p>
+                            <button
+                              onClick={handleCopyMessage}
+                              style={{
+                                marginTop: '12px',
+                                background: copyMsgDone ? '#10B981' : '#2D6A4F',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '10px 20px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                fontFamily: 'DM Sans, Arial, sans-serif',
+                                transition: 'background 0.2s',
+                                display: 'block',
+                                width: '100%'
+                              }}>
+                              {copyMsgDone ? '✓ Copied!' : '📋 Copy Message'}
+                            </button>
+                          </>
                         ) : (
                           <button onClick={handleGenerateAI} className="px-6 py-3 bg-white text-[#2D6A4F] rounded-xl font-bold shadow-lg hover:bg-gray-100 transition">✨ Generate Performance Summary</button>
                         )}
@@ -541,6 +593,7 @@ export default function ConsultantDashboard() {
                         {templateFile && (
                           <button onClick={handleProcessTemplate} className="mt-8 w-full py-5 bg-[#2D6A4F] text-white rounded-2xl font-bold text-lg shadow-xl hover:bg-green-800 transition">Fill Template with AI →</button>
                         )}
+                        {fillError && <p className="text-red-500 mt-4 text-sm">{fillError}</p>}
                       </div>
                     ) : (
                       <div className="space-y-6">
@@ -559,11 +612,11 @@ export default function ConsultantDashboard() {
                         <div className="space-y-4">
                           {filledAnswers.map((ans, i) => (
                             <div key={i} className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-                              <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-2">{ans.q}</p>
-                              <p className="text-lg font-bold text-[#1B1B1B] mb-4">{ans.a}</p>
+                              <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-2">{ans.q || ans.question}</p>
+                              <p className="text-lg font-bold text-[#1B1B1B] mb-4">{ans.a || ans.answer}</p>
                               <div className="flex justify-between items-center">
-                                <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">Source: {ans.source}</span>
-                                <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase ${ans.conf === 'high' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>{ans.conf} confidence</span>
+                                <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">Source: {ans.source || ans.dataSource || 'AI Extracted'}</span>
+                                <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase ${ans.conf === 'high' || ans.confidence === 'high'? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>{ans.conf || ans.confidence} confidence</span>
                               </div>
                             </div>
                           ))}
